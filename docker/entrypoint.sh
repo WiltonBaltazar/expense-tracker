@@ -9,6 +9,9 @@ fi
 # Run migrations
 php artisan migrate --force
 
+# Create storage symlink
+php artisan storage:link --force 2>/dev/null || true
+
 # Clear and cache config for production
 if [ "$APP_ENV" = "production" ]; then
     php artisan config:cache
