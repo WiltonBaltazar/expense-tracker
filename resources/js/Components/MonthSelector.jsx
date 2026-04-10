@@ -25,39 +25,28 @@ export default function MonthSelector({ currentMonth, routeName, className = '' 
         return year === subYear && month === subMonth;
     })();
 
-    const btnBase = {
-        width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: '8px', background: '#ffffff', border: '1px solid rgba(0,0,0,0.09)',
-        color: '#a39888', cursor: 'pointer', transition: 'all 0.15s',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)', flexShrink: 0,
-    };
-
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className={className}>
+        <div className={`flex items-center gap-1.5 ${className}`}>
             <button
                 onClick={() => navigate(-1)}
                 disabled={isFirstMonth}
-                style={{ ...btnBase, opacity: isFirstMonth ? 0.3 : 1, cursor: isFirstMonth ? 'not-allowed' : 'pointer' }}
-                onMouseEnter={(e) => { if (!isFirstMonth) { e.currentTarget.style.color = '#1c1812'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'; }}}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#a39888'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.09)'; }}
+                className={`w-9 h-9 flex items-center justify-center rounded-lg bg-white border border-black/8 text-gray-400 transition-all hover:text-gray-800 hover:border-black/20 shadow-sm ${isFirstMonth ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
             </button>
 
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#1c1812', minWidth: '140px', textAlign: 'center', textTransform: 'capitalize', fontFamily: 'DM Mono, monospace' }}>
+            <span className="font-mono text-[12.5px] font-semibold text-gray-700 min-w-[130px] text-center capitalize">
                 {label}
             </span>
 
             <button
                 onClick={() => navigate(1)}
                 disabled={isCurrentMonth}
-                style={{ ...btnBase, opacity: isCurrentMonth ? 0.3 : 1, cursor: isCurrentMonth ? 'not-allowed' : 'pointer' }}
-                onMouseEnter={(e) => { if (!isCurrentMonth) { e.currentTarget.style.color = '#1c1812'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'; }}}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#a39888'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.09)'; }}
+                className={`w-9 h-9 flex items-center justify-center rounded-lg bg-white border border-black/8 text-gray-400 transition-all hover:text-gray-800 hover:border-black/20 shadow-sm ${isCurrentMonth ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
             </button>

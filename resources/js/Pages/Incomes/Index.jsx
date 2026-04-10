@@ -1,24 +1,19 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Modal from '@/Components/Modal';
 import MonthSelector from '@/Components/MonthSelector';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-const fmt = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' MT';
+const fmt  = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' MT';
+const fmtN = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
 const SOURCE_LABELS = { salario:'Salário', freelance:'Freelance', renda_passiva:'Renda Passiva', outro:'Outro' };
-const SOURCE_COLORS = { salario:'#0d9488', freelance:'#b8790a', renda_passiva:'#d97706', outro:'#2563eb' };
+const SOURCE_COLORS = { salario:'#00B679', freelance:'#D97706', renda_passiva:'#2563EB', outro:'#6B7280' };
 const FREQ_LABELS   = { semanal:'Semanal', quinzenal:'Quinzenal', mensal:'Mensal', bimestral:'Bimestral', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual', unico:'Único' };
 
-const S = {
-    card:  { background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' },
-    mono:  { fontFamily: 'DM Mono, monospace' },
-    label: { fontSize: '11px', fontWeight: 600, color: '#6b6458', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '7px', fontFamily: 'DM Mono, monospace' },
-};
+const inputCls = 'w-full px-3 py-2 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[13px] outline-none focus:border-[#00B679]/50 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors';
 
-const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: '10px', background: '#faf8f3', border: '1px solid rgba(0,0,0,0.1)', color: '#1c1812', fontSize: '13px', fontFamily: 'DM Sans, sans-serif', outline: 'none' };
-const focusIn  = (e) => { e.target.style.borderColor = 'rgba(184,121,10,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(184,121,10,0.1)'; };
-const focusOut = (e) => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.boxShadow = 'none'; };
-
+// ── Form ──────────────────────────────────────────────────────────────────────
 function IncomeForm({ onClose, income = null, currentMonth }) {
     const defaultDate = income?.received_at?.split('T')[0] || `${currentMonth}-01`;
     const { data, setData, post, put, processing, errors, reset } = useForm({
@@ -39,43 +34,46 @@ function IncomeForm({ onClose, income = null, currentMonth }) {
     }
 
     return (
-        <div style={{ ...S.card, padding: '24px', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1c1812', marginBottom: '20px' }}>
-                {income ? 'Editar Renda' : 'Nova Renda'}
-            </h3>
+        <div className="bg-white rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[16px] font-bold text-gray-900">{income ? 'Editar Renda' : 'Nova Renda'}</h3>
+                <button onClick={onClose} className="text-gray-300 hover:text-gray-500 transition-colors p-1 rounded">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
             <form onSubmit={handleSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label style={S.label}>Fonte</label>
-                        <select value={data.source} onChange={(e) => setData('source', e.target.value)} style={{ ...inputStyle, background: '#ffffff' }} onFocus={focusIn} onBlur={focusOut}>
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Fonte</label>
+                        <select value={data.source} onChange={e => setData('source', e.target.value)} className={inputCls}>
                             {Object.entries(SOURCE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                         </select>
-                        {errors.source && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '4px' }}>{errors.source}</p>}
+                        {errors.source && <p className="text-[11px] text-red-500 mt-1">{errors.source}</p>}
                     </div>
                     <div>
-                        <label style={S.label}>Valor (MT)</label>
-                        <input type="number" step="0.01" value={data.amount} onChange={(e) => setData('amount', e.target.value)} style={inputStyle} placeholder="0.00" onFocus={focusIn} onBlur={focusOut} />
-                        {errors.amount && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '4px' }}>{errors.amount}</p>}
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Valor (MT)</label>
+                        <input type="number" step="0.01" value={data.amount} onChange={e => setData('amount', e.target.value)} className={inputCls} placeholder="0.00" />
+                        {errors.amount && <p className="text-[11px] text-red-500 mt-1">{errors.amount}</p>}
                     </div>
                     <div>
-                        <label style={S.label}>Frequência</label>
-                        <select value={data.frequency} onChange={(e) => setData('frequency', e.target.value)} style={{ ...inputStyle, background: '#ffffff' }} onFocus={focusIn} onBlur={focusOut}>
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Frequência</label>
+                        <select value={data.frequency} onChange={e => setData('frequency', e.target.value)} className={inputCls}>
                             {Object.entries(FREQ_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label style={S.label}>Data de Recebimento</label>
-                        <input type="date" value={data.received_at} onChange={(e) => setData('received_at', e.target.value)} style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                        {errors.received_at && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '4px' }}>{errors.received_at}</p>}
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Data de Recebimento</label>
+                        <input type="date" value={data.received_at} onChange={e => setData('received_at', e.target.value)} className={inputCls} />
+                        {errors.received_at && <p className="text-[11px] text-red-500 mt-1">{errors.received_at}</p>}
                     </div>
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={S.label}>Descrição</label>
-                        <input type="text" value={data.description} onChange={(e) => setData('description', e.target.value)} style={inputStyle} placeholder="Opcional" onFocus={focusIn} onBlur={focusOut} />
+                    <div className="sm:col-span-2">
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Descrição</label>
+                        <input type="text" value={data.description} onChange={e => setData('description', e.target.value)} className={inputCls} placeholder="Opcional" />
                     </div>
                 </div>
-                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                    <button type="button" onClick={onClose} className="btn-secondary" style={{ fontSize: '12px', padding: '8px 16px' }}>Cancelar</button>
-                    <button type="submit" disabled={processing} className="btn-primary" style={{ fontSize: '12px', padding: '8px 16px' }}>
+                <div className="mt-4 flex justify-end gap-2">
+                    <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
+                    <button type="submit" disabled={processing} className="btn-primary text-[13px]">
                         {processing ? 'Salvando...' : 'Salvar'}
                     </button>
                 </div>
@@ -84,8 +82,67 @@ function IncomeForm({ onClose, income = null, currentMonth }) {
     );
 }
 
-const thStyle = { padding: '10px 20px', textAlign: 'left', fontSize: '10px', fontWeight: 700, color: '#a39888', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', background: 'rgba(0,0,0,0.02)' };
+// ── Income row (transaction style) ───────────────────────────────────────────
+function IncomeRow({ income, onEdit, onDelete }) {
+    const [hovered, setHovered] = useState(false);
+    const color  = SOURCE_COLORS[income.source] || '#6B7280';
+    const initial = (SOURCE_LABELS[income.source] || income.source).charAt(0).toUpperCase();
 
+    return (
+        <div
+            className={`flex items-center gap-3 px-4 py-2.5 border-b border-black/5 last:border-0 transition-colors ${hovered ? 'bg-gray-50' : ''}`}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+        >
+            {/* Icon */}
+            <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[13px] font-bold"
+                style={{ background: color + '18', color }}>
+                {initial}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+                <p className="text-[13.5px] font-medium text-gray-800 truncate">{income.description || SOURCE_LABELS[income.source] || income.source}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded-full"
+                        style={{ background: color + '12', color }}>
+                        {SOURCE_LABELS[income.source] || income.source}
+                    </span>
+                    <span className="text-[11px] text-gray-400">{FREQ_LABELS[income.frequency]}</span>
+                </div>
+            </div>
+
+            {/* Date */}
+            <span className="hidden sm:block text-[11.5px] text-gray-400 flex-shrink-0 min-w-[84px] text-right">
+                {new Date(income.received_at).toLocaleDateString('pt-BR')}
+            </span>
+
+            {/* Amount */}
+            <span className="font-mono text-[13.5px] font-semibold text-[#00B679] flex-shrink-0 min-w-[90px] text-right">
+                + {fmtN(income.amount)}
+            </span>
+
+            {/* Actions */}
+            <div className={`hidden sm:flex gap-1 flex-shrink-0 transition-opacity ${hovered ? 'opacity-100' : 'opacity-0'}`}>
+                <button onClick={() => onEdit(income)} className="p-1.5 rounded text-gray-300 hover:text-[#00B679] transition-colors">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                </button>
+                <button onClick={() => onDelete(income.id)} className="p-1.5 rounded text-gray-300 hover:text-red-500 transition-colors">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                </button>
+            </div>
+
+            {/* Mobile */}
+            <div className="flex sm:hidden gap-2 flex-shrink-0 text-[11px] font-semibold">
+                <button onClick={() => onEdit(income)} className="text-[#00B679]">Editar</button>
+                <span className="text-gray-300">·</span>
+                <button onClick={() => onDelete(income.id)} className="text-red-500">Excluir</button>
+            </div>
+        </div>
+    );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function Index({ incomes, monthTotal, currentMonth }) {
     const [showForm, setShowForm] = useState(false);
     const [editingIncome, setEditingIncome] = useState(null);
@@ -94,123 +151,84 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
     function handleDelete(id) {
         if (confirm('Remover esta renda?')) destroy(route('incomes.destroy', id));
     }
+    function handleEdit(income) { setEditingIncome(income); setShowForm(false); }
+    function openNew() { setEditingIncome(null); setShowForm(true); }
 
     return (
         <AuthenticatedLayout
             header={
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="flex items-center justify-between">
                     <div>
-                        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', fontWeight: 700, color: '#1c1812' }}>Rendas</h2>
-                        <MonthSelector currentMonth={currentMonth} routeName="incomes.index" className="mt-1" />
+                        <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">Rendas</h2>
+                        <MonthSelector currentMonth={currentMonth} routeName="incomes.index" className="mt-0.5" />
                     </div>
-                    <button onClick={() => { setEditingIncome(null); setShowForm(true); }} className="btn-primary" style={{ fontSize: '13px', padding: '8px 18px' }}>
-                        + Nova Renda
-                    </button>
+                    <button onClick={openNew} className="btn-primary text-[13px]">+ Nova Renda</button>
                 </div>
             }
         >
             <Head title="Rendas" />
 
-            <div style={{ padding: '24px 0 40px' }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }} className="sm:px-8">
+            <div className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10">
 
-                    {/* Summary card */}
-                    <div style={{ ...S.card, padding: '20px 24px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(13,148,136,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#0d9488">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '11px', fontWeight: 600, color: '#0d9488', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace' }}>Total recebido no mês</div>
-                                <div style={{ ...S.mono, fontSize: '1.6rem', fontWeight: 500, color: '#1c1812', lineHeight: 1.2 }}>{fmt(monthTotal)}</div>
-                            </div>
+                {/* Summary card */}
+                <div className="bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-4 flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-[#00B679]/10 flex items-center justify-center flex-shrink-0">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#00B679">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                         </div>
-                        <span style={{ fontSize: '12px', color: '#0d9488', fontWeight: 600 }}>
-                            {incomes.length} entrada{incomes.length !== 1 ? 's' : ''}
-                        </span>
+                        <div>
+                            <p className="text-[10.5px] font-bold text-[#00B679] uppercase tracking-widest">Total recebido no mês</p>
+                            <p className="font-mono text-2xl font-bold text-gray-900 mt-0.5">+ {fmtN(monthTotal)}</p>
+                        </div>
                     </div>
-
-                    {(showForm || editingIncome) && (
-                        <IncomeForm income={editingIncome} currentMonth={currentMonth} onClose={() => { setShowForm(false); setEditingIncome(null); }} />
-                    )}
-
-                    {incomes.length > 0 ? (
-                        <>
-                            {/* Mobile */}
-                            <div className="sm:hidden" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {incomes.map((income) => (
-                                    <div key={income.id} style={{ ...S.card, padding: '14px 16px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                            <div style={{ minWidth: 0, flex: 1 }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                                                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: (SOURCE_COLORS[income.source] || '#2563eb') + '18', color: SOURCE_COLORS[income.source] || '#2563eb' }}>
-                                                        {SOURCE_LABELS[income.source] || income.source}
-                                                    </span>
-                                                    <span style={{ fontSize: '11px', color: '#a39888' }}>{FREQ_LABELS[income.frequency]}</span>
-                                                </div>
-                                                <p style={{ fontSize: '13px', color: '#6b6458', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{income.description || 'Sem descrição'}</p>
-                                                <p style={{ fontSize: '11px', color: '#a39888', marginTop: '2px' }}>{new Date(income.received_at).toLocaleDateString('pt-BR')}</p>
-                                            </div>
-                                            <span style={{ ...S.mono, fontSize: '14px', fontWeight: 700, color: '#1c1812', marginLeft: '12px', flexShrink: 0 }}>{fmt(income.amount)}</span>
-                                        </div>
-                                        <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', gap: '16px' }}>
-                                            <button onClick={() => { setEditingIncome(income); setShowForm(false); }} style={{ fontSize: '12px', fontWeight: 600, color: '#b8790a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Editar</button>
-                                            <button onClick={() => handleDelete(income.id)} style={{ fontSize: '12px', fontWeight: 600, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Excluir</button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Desktop */}
-                            <div className="hidden sm:block" style={{ ...S.card, overflow: 'hidden' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                        <tr>
-                                            {['Data','Fonte','Descrição','Frequência','Valor','Ações'].map((h, i) => (
-                                                <th key={h} style={{ ...thStyle, textAlign: i >= 4 ? 'right' : 'left' }}>{h}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {incomes.map((income) => (
-                                            <tr key={income.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)', transition: 'background 0.1s' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.018)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                                                <td style={{ padding: '12px 20px', fontSize: '12px', color: '#a39888', ...S.mono }}>{new Date(income.received_at).toLocaleDateString('pt-BR')}</td>
-                                                <td style={{ padding: '12px 20px' }}>
-                                                    <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 9px', borderRadius: '999px', background: (SOURCE_COLORS[income.source] || '#2563eb') + '18', color: SOURCE_COLORS[income.source] || '#2563eb' }}>
-                                                        {SOURCE_LABELS[income.source] || income.source}
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: '12px 20px', fontSize: '13px', color: '#6b6458' }}>{income.description || '—'}</td>
-                                                <td style={{ padding: '12px 20px', fontSize: '12px', color: '#6b6458' }}>{FREQ_LABELS[income.frequency]}</td>
-                                                <td style={{ padding: '12px 20px', textAlign: 'right', ...S.mono, fontSize: '13px', fontWeight: 600, color: '#1c1812' }}>{fmt(income.amount)}</td>
-                                                <td style={{ padding: '12px 20px', textAlign: 'right' }}>
-                                                    <button onClick={() => { setEditingIncome(income); setShowForm(false); }} style={{ fontSize: '12px', fontWeight: 600, color: '#b8790a', background: 'none', border: 'none', cursor: 'pointer', marginRight: '14px' }}>Editar</button>
-                                                    <button onClick={() => handleDelete(income.id)} style={{ fontSize: '12px', fontWeight: 600, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}>Excluir</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </>
-                    ) : (
-                        <div style={{ ...S.card, padding: '60px 24px', textAlign: 'center' }}>
-                            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'rgba(184,121,10,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#b8790a">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <p style={{ fontSize: '14px', color: '#6b6458', marginBottom: '6px' }}>Nenhuma renda registrada neste mês</p>
-                            <p style={{ fontSize: '12px', color: '#a39888', marginBottom: '20px' }}>Adicione suas rendas para acompanhar o histórico</p>
-                            <button onClick={() => setShowForm(true)} className="btn-primary" style={{ fontSize: '13px' }}>Adicionar renda</button>
-                        </div>
-                    )}
+                    <span className="text-[12.5px] font-semibold text-[#00B679] bg-[#00B679]/8 px-3 py-1 rounded-full">
+                        {incomes.length} entrada{incomes.length !== 1 ? 's' : ''}
+                    </span>
                 </div>
+
+                {/* Form modal */}
+                <Modal show={showForm || !!editingIncome} onClose={() => { setShowForm(false); setEditingIncome(null); }} maxWidth="lg">
+                    <IncomeForm income={editingIncome} currentMonth={currentMonth} onClose={() => { setShowForm(false); setEditingIncome(null); }} />
+                </Modal>
+
+                {/* List */}
+                {incomes.length > 0 ? (
+                    <div className="bg-white rounded-xl border border-black/7 shadow-sm overflow-hidden">
+                        {/* Desktop header */}
+                        <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 border-b border-black/5">
+                            <div className="w-9 flex-shrink-0" />
+                            <div className="flex-1 text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">Descrição / Fonte</div>
+                            <div className="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider min-w-[84px] text-right">Data</div>
+                            <div className="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider min-w-[90px] text-right">Valor</div>
+                            <div className="w-14 flex-shrink-0" />
+                        </div>
+                        {incomes.map(income => (
+                            <IncomeRow key={income.id} income={income} onEdit={handleEdit} onDelete={handleDelete} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-14 text-center">
+                        <div className="w-12 h-12 rounded-xl bg-[#00B679]/8 flex items-center justify-center mx-auto mb-4">
+                            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#00B679">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <p className="text-[14px] font-medium text-gray-600 mb-1">Nenhuma renda registrada neste mês</p>
+                        <p className="text-[12.5px] text-gray-400 mb-5">Adicione suas rendas para acompanhar o histórico</p>
+                        <button onClick={openNew} className="btn-primary text-[13px]">Adicionar renda</button>
+                    </div>
+                )}
             </div>
+
+            {/* FAB */}
+            <button onClick={openNew}
+                className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 z-30 hover:scale-105 active:scale-95 transition-transform">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#fff">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </button>
         </AuthenticatedLayout>
     );
 }

@@ -1,19 +1,16 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Modal from '@/Components/Modal';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useState, useCallback } from 'react';
 
-const fmt = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' MT';
+const fmt  = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' MT';
+const fmtN = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
-const S = {
-    card:  { background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' },
-    mono:  { fontFamily: 'DM Mono, monospace' },
-    label: { fontSize: '11px', fontWeight: 600, color: '#6b6458', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '7px', fontFamily: 'DM Mono, monospace' },
-};
+const GOAL_COLORS = ['#00B679','#7C3AED','#2563EB','#D97706','#E11D48','#0891B2'];
 
-const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: '10px', background: '#faf8f3', border: '1px solid rgba(0,0,0,0.1)', color: '#1c1812', fontSize: '13px', fontFamily: 'DM Sans, sans-serif', outline: 'none' };
-const focusIn  = (e) => { e.target.style.borderColor = 'rgba(184,121,10,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(184,121,10,0.1)'; };
-const focusOut = (e) => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.boxShadow = 'none'; };
+const inputCls = 'w-full px-3 py-2 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[13px] outline-none focus:border-[#00B679]/50 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors';
 
+// ── Goal Form ─────────────────────────────────────────────────────────────────
 function GoalForm({ onClose, goal = null }) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: goal?.name || '',
@@ -32,34 +29,37 @@ function GoalForm({ onClose, goal = null }) {
     }
 
     return (
-        <div style={{ ...S.card, padding: '24px', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1c1812', marginBottom: '20px' }}>
-                {goal ? 'Editar Meta' : 'Nova Meta'}
-            </h3>
+        <div className="bg-white rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[16px] font-bold text-gray-900">{goal ? 'Editar Meta' : 'Nova Meta'}</h3>
+                <button onClick={onClose} className="text-gray-300 hover:text-gray-500 transition-colors p-1 rounded">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
             <form onSubmit={handleSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={S.label}>Nome da Meta</label>
-                        <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} style={inputStyle} placeholder="Ex: Viagem, Reserva de emergência..." onFocus={focusIn} onBlur={focusOut} />
-                        {errors.name && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '4px' }}>{errors.name}</p>}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="sm:col-span-2">
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nome da Meta</label>
+                        <input type="text" value={data.name} onChange={e => setData('name', e.target.value)} className={inputCls} placeholder="Ex: Viagem, Reserva de emergência..." />
+                        {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>}
                     </div>
                     <div>
-                        <label style={S.label}>Valor Alvo (MT)</label>
-                        <input type="number" step="0.01" value={data.target_amount} onChange={(e) => setData('target_amount', e.target.value)} style={inputStyle} placeholder="0.00" onFocus={focusIn} onBlur={focusOut} />
-                        {errors.target_amount && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '4px' }}>{errors.target_amount}</p>}
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Valor Alvo (MT)</label>
+                        <input type="number" step="0.01" value={data.target_amount} onChange={e => setData('target_amount', e.target.value)} className={inputCls} placeholder="0.00" />
+                        {errors.target_amount && <p className="text-[11px] text-red-500 mt-1">{errors.target_amount}</p>}
                     </div>
                     <div>
-                        <label style={S.label}>Valor Atual (MT)</label>
-                        <input type="number" step="0.01" value={data.current_amount} onChange={(e) => setData('current_amount', e.target.value)} style={inputStyle} placeholder="0.00" onFocus={focusIn} onBlur={focusOut} />
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Valor Atual (MT)</label>
+                        <input type="number" step="0.01" value={data.current_amount} onChange={e => setData('current_amount', e.target.value)} className={inputCls} placeholder="0.00" />
                     </div>
                     <div>
-                        <label style={S.label}>Prazo (opcional)</label>
-                        <input type="date" value={data.deadline} onChange={(e) => setData('deadline', e.target.value)} style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Prazo (opcional)</label>
+                        <input type="date" value={data.deadline} onChange={e => setData('deadline', e.target.value)} className={inputCls} />
                     </div>
                 </div>
-                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                    <button type="button" onClick={onClose} className="btn-secondary" style={{ fontSize: '12px', padding: '8px 16px' }}>Cancelar</button>
-                    <button type="submit" disabled={processing} className="btn-primary" style={{ fontSize: '12px', padding: '8px 16px' }}>
+                <div className="mt-4 flex justify-end gap-2">
+                    <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
+                    <button type="submit" disabled={processing} className="btn-primary text-[13px]">
                         {processing ? 'Salvando...' : 'Salvar'}
                     </button>
                 </div>
@@ -68,8 +68,53 @@ function GoalForm({ onClose, goal = null }) {
     );
 }
 
-const GOAL_COLORS = ['#b8790a','#7c3aed','#0d9488','#d97706','#e11d48','#2563eb'];
+// ── Savings Transfer Modal ────────────────────────────────────────────────────
+function SavingsTransferModal({ show, onClose }) {
+    const { data, setData, post, processing, reset } = useForm({
+        amount: '', note: '', transferred_at: new Date().toISOString().slice(0, 10),
+    });
 
+    function handleSubmit(e) {
+        e.preventDefault();
+        post(route('savings.store'), { onSuccess: () => { reset(); onClose(); } });
+    }
+
+    return (
+        <Modal show={show} onClose={onClose} maxWidth="md">
+            <div className="bg-white rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-[16px] font-bold text-gray-900">Adicionar à Poupança</h3>
+                    <button onClick={onClose} className="text-gray-300 hover:text-gray-500 transition-colors p-1 rounded">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <p className="text-[12.5px] text-gray-400 mb-5">O valor será registrado na poupança e distribuído entre suas metas conforme a alocação configurada.</p>
+                <form onSubmit={handleSubmit} className="space-y-3">
+                    <div>
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Valor (MT)</label>
+                        <input type="number" min="0.01" step="0.01" placeholder="0.00" value={data.amount} onChange={e => setData('amount', e.target.value)} required className={inputCls} autoFocus />
+                    </div>
+                    <div>
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Data</label>
+                        <input type="date" value={data.transferred_at} onChange={e => setData('transferred_at', e.target.value)} required className={inputCls} />
+                    </div>
+                    <div>
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nota (opcional)</label>
+                        <input type="text" placeholder="Ex: Bónus, renda extra..." value={data.note} onChange={e => setData('note', e.target.value)} className={inputCls} />
+                    </div>
+                    <div className="pt-2 flex justify-end gap-2">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                            {processing ? 'Registrando...' : 'Adicionar à Poupança'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+    );
+}
+
+// ── Allocation sliders ────────────────────────────────────────────────────────
 function AllocationPanel({ goals, totalSavings }) {
     const activeGoals = goals.filter(g => !g.completed);
     const [allocations, setAllocations] = useState(() =>
@@ -83,24 +128,16 @@ function AllocationPanel({ goals, totalSavings }) {
         const oldOtherTotal = otherIds.reduce((s, id) => s + allocations[id], 0);
         const remaining = 100 - newValue;
         const newAllocs = { ...allocations, [changedId]: newValue };
-
         if (otherIds.length === 0) {
             newAllocs[changedId] = 100;
         } else if (oldOtherTotal === 0) {
             const each = Math.round((remaining / otherIds.length) * 100) / 100;
-            otherIds.forEach((id, i) => {
-                newAllocs[id] = i === otherIds.length - 1 ? Math.round((remaining - each * (otherIds.length - 1)) * 100) / 100 : each;
-            });
+            otherIds.forEach((id, i) => { newAllocs[id] = i === otherIds.length - 1 ? Math.round((remaining - each * (otherIds.length - 1)) * 100) / 100 : each; });
         } else {
             let distributed = 0;
             otherIds.forEach((id, i) => {
-                if (i === otherIds.length - 1) {
-                    newAllocs[id] = Math.round((remaining - distributed) * 100) / 100;
-                } else {
-                    const val = Math.round(remaining * (allocations[id] / oldOtherTotal) * 100) / 100;
-                    newAllocs[id] = val;
-                    distributed += val;
-                }
+                if (i === otherIds.length - 1) { newAllocs[id] = Math.round((remaining - distributed) * 100) / 100; }
+                else { const val = Math.round(remaining * (allocations[id] / oldOtherTotal) * 100) / 100; newAllocs[id] = val; distributed += val; }
             });
         }
         setAllocations(newAllocs);
@@ -122,8 +159,6 @@ function AllocationPanel({ goals, totalSavings }) {
         setDirty(true);
     }
 
-    if (activeGoals.length < 2) return null;
-
     function calcMonths(goal, pct) {
         const monthly = totalSavings * pct / 100;
         if (monthly <= 0) return null;
@@ -131,82 +166,81 @@ function AllocationPanel({ goals, totalSavings }) {
     }
     function calcDate(months) {
         if (!months) return null;
-        const d = new Date();
-        d.setMonth(d.getMonth() + months);
+        const d = new Date(); d.setMonth(d.getMonth() + months);
         return d.toLocaleDateString('pt-BR');
     }
 
+    if (activeGoals.length < 2) return null;
+
     return (
-        <div style={{ ...S.card, padding: '22px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'rgba(184,121,10,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#b8790a">
+        <div className="bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-3">
+            <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-[#00B679]/10 flex items-center justify-center">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#00B679">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
                         </svg>
                     </div>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#1c1812' }}>Distribuir Economia</span>
+                    <span className="text-[14px] font-semibold text-gray-900">Distribuir Economia entre Metas</span>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <button onClick={handleReset} style={{ fontSize: '11px', fontWeight: 500, color: '#6b6458', background: 'none', border: 'none', cursor: 'pointer' }}>Igualar</button>
+                <div className="flex items-center gap-2">
+                    <button onClick={handleReset} className="text-[12px] text-gray-500 hover:text-gray-800 transition-colors cursor-pointer bg-none border-none">Igualar</button>
                     {dirty && (
-                        <button onClick={handleSave} disabled={saving} className="btn-primary" style={{ fontSize: '11px', padding: '5px 14px' }}>
+                        <button onClick={handleSave} disabled={saving} className="btn-primary text-[12px] py-1.5 px-3">
                             {saving ? 'Salvando...' : 'Salvar'}
                         </button>
                     )}
                 </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div className="space-y-5">
                 {activeGoals.map((goal, gi) => {
-                    const pct = allocations[goal.id] || 0;
+                    const pct    = allocations[goal.id] || 0;
                     const amount = totalSavings * pct / 100;
                     const months = calcMonths(goal, pct);
-                    const color = GOAL_COLORS[gi % GOAL_COLORS.length];
+                    const color  = GOAL_COLORS[gi % GOAL_COLORS.length];
 
                     return (
                         <div key={goal.id}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                                    <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: color }} />
-                                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#1c1812', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{goal.name}</span>
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
+                                    <span className="text-[13px] font-medium text-gray-800 max-w-[160px] truncate">{goal.name}</span>
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline' }}>
-                                    <span style={{ ...S.mono, fontSize: '11px', color: '#a39888' }}>({fmt(amount)})</span>
-                                    <span style={{ ...S.mono, fontSize: '15px', fontWeight: 600, color }}>
-                                        {pct.toFixed(0)}%
-                                    </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono text-[11px] text-gray-400">({fmtN(amount)})</span>
+                                    <span className="font-mono text-[15px] font-bold" style={{ color }}>{pct.toFixed(0)}%</span>
                                 </div>
                             </div>
                             <input
                                 type="range" min="0" max="100" step="1" value={pct}
-                                onChange={(e) => handleSlider(goal.id, Number(e.target.value))}
-                                style={{ width: '100%', height: '4px', borderRadius: '999px', appearance: 'none', background: `linear-gradient(to right, ${color} ${pct}%, rgba(0,0,0,0.1) ${pct}%)`, cursor: 'pointer', outline: 'none' }}
+                                onChange={e => handleSlider(goal.id, Number(e.target.value))}
+                                className="w-full h-1.5 rounded-full appearance-none cursor-pointer outline-none"
+                                style={{ background: `linear-gradient(to right, ${color} ${pct}%, rgba(0,0,0,0.1) ${pct}%)`, accentColor: color }}
                             />
                             {months && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px' }}>
-                                    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#a39888">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span style={{ fontSize: '11px', color: '#a39888' }}>{calcDate(months)} ({months}m)</span>
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#9CA3AF"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span className="text-[11px] text-gray-400">{calcDate(months)} ({months}m)</span>
                                 </div>
                             )}
-                            {pct === 0 && <p style={{ fontSize: '11px', color: '#d97706', marginTop: '4px' }}>Sem alocação — esta meta não terá progresso</p>}
+                            {pct === 0 && <p className="text-[11px] text-amber-600 mt-1">Sem alocação — esta meta não terá progresso</p>}
                         </div>
                     );
                 })}
             </div>
 
-            <div style={{ marginTop: '20px', display: 'flex', borderRadius: '999px', overflow: 'hidden', height: '5px', background: 'rgba(0,0,0,0.07)' }}>
+            {/* Combined bar */}
+            <div className="mt-5 flex h-1.5 rounded-full overflow-hidden bg-black/7">
                 {activeGoals.map((goal, gi) => (
-                    <div key={goal.id} style={{ width: `${allocations[goal.id] || 0}%`, background: GOAL_COLORS[gi % GOAL_COLORS.length], transition: 'width 0.3s' }} />
+                    <div key={goal.id} className="transition-all duration-300" style={{ width: `${allocations[goal.id] || 0}%`, background: GOAL_COLORS[gi % GOAL_COLORS.length] }} />
                 ))}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '10px' }}>
+            <div className="flex flex-wrap gap-3 mt-2.5">
                 {activeGoals.map((goal, gi) => (
-                    <div key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: GOAL_COLORS[gi % GOAL_COLORS.length] }} />
-                        <span style={{ fontSize: '11px', color: '#6b6458' }}>{goal.name}</span>
+                    <div key={goal.id} className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ background: GOAL_COLORS[gi % GOAL_COLORS.length] }} />
+                        <span className="text-[11px] text-gray-500">{goal.name}</span>
                     </div>
                 ))}
             </div>
@@ -214,6 +248,7 @@ function AllocationPanel({ goals, totalSavings }) {
     );
 }
 
+// ── Fast-track simulator ──────────────────────────────────────────────────────
 function FastTrackSimulator({ goal }) {
     const [redirectAmount, setRedirectAmount] = useState(100);
     const [result, setResult] = useState(goal.fast_track);
@@ -231,37 +266,32 @@ function FastTrackSimulator({ goal }) {
     if (!goal.eta) return null;
 
     return (
-        <div style={{ marginTop: '16px', padding: '14px 16px', borderRadius: '12px', background: 'rgba(184,121,10,0.04)', border: '1px solid rgba(184,121,10,0.14)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '12px' }}>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#b8790a">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                </svg>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#b8790a', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace' }}>Fast-Track</span>
+        <div className="mt-4 p-4 rounded-xl bg-[#00B679]/4 border border-[#00B679]/15">
+            <div className="flex items-center gap-2 mb-3">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#00B679"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                <span className="text-[11px] font-bold text-[#00916A] uppercase tracking-widest font-mono">Fast-Track Simulator</span>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '12px', color: '#6b6458' }}>Redirecionar MT</span>
-                <input type="number" value={redirectAmount} onChange={(e) => setRedirectAmount(Number(e.target.value))}
-                    style={{ ...inputStyle, width: '72px', fontSize: '12px', padding: '6px 10px' }}
-                    onFocus={focusIn} onBlur={focusOut} />
-                <span style={{ fontSize: '12px', color: '#6b6458' }}>de Desejos</span>
-                <button onClick={simulate} className="btn-primary" style={{ fontSize: '11px', padding: '5px 14px' }}>Simular</button>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="text-[12.5px] text-gray-600">Redirecionar MT</span>
+                <input type="number" value={redirectAmount} onChange={e => setRedirectAmount(Number(e.target.value))}
+                    className="w-20 px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-[12px] font-mono outline-none focus:border-[#00B679]/50" />
+                <span className="text-[12.5px] text-gray-600">de Desejos</span>
+                <button onClick={simulate} className="btn-primary text-[12px] py-1.5 px-3">Simular</button>
             </div>
             {result && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', gap: '10px', fontSize: '12px' }}>
-                        <span style={{ color: '#6b6458' }}>Normal:</span>
-                        <span style={{ color: '#1c1812', fontWeight: 500, ...S.mono }}>{result.meses_normal} meses</span>
+                <div className="space-y-1.5">
+                    <div className="flex gap-2 text-[12.5px]">
+                        <span className="text-gray-500 w-20">Normal:</span>
+                        <span className="font-mono font-medium text-gray-800">{result.meses_normal} meses</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '10px', fontSize: '12px' }}>
-                        <span style={{ color: '#b8790a' }}>Fast-Track:</span>
-                        <span style={{ color: '#b8790a', fontWeight: 700, ...S.mono }}>{result.meses_fast_track} meses ({result.data_estimada})</span>
+                    <div className="flex gap-2 text-[12.5px]">
+                        <span className="text-[#00916A] w-20">Fast-Track:</span>
+                        <span className="font-mono font-bold text-[#00B679]">{result.meses_fast_track} meses ({result.data_estimada})</span>
                     </div>
                     {result.dias_economizados > 0 && (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '8px', background: 'rgba(13,148,136,0.08)', border: '1px solid rgba(13,148,136,0.18)', marginTop: '4px' }}>
-                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#0d9488">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#0d9488' }}>{result.dias_economizados} dias mais rápido!</span>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00B679]/8 border border-[#00B679]/18 mt-1">
+                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#00B679"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span className="text-[12px] font-bold text-[#00916A]">{result.dias_economizados} dias mais rápido!</span>
                         </div>
                     )}
                 </div>
@@ -270,9 +300,11 @@ function FastTrackSimulator({ goal }) {
     );
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function Index({ goals, allocations }) {
     const [showForm, setShowForm] = useState(false);
     const [editingGoal, setEditingGoal] = useState(null);
+    const [showSavingsModal, setShowSavingsModal] = useState(false);
     const { delete: destroy } = useForm();
 
     function handleDelete(id) {
@@ -282,90 +314,103 @@ export default function Index({ goals, allocations }) {
     return (
         <AuthenticatedLayout
             header={
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', fontWeight: 700, color: '#1c1812' }}>Metas</h2>
-                    <button onClick={() => { setEditingGoal(null); setShowForm(true); }} className="btn-primary" style={{ fontSize: '13px', padding: '8px 18px' }}>
-                        + Nova Meta
-                    </button>
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">Metas</h2>
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setShowSavingsModal(true)} className="btn-secondary text-[13px]">
+                            + Poupança
+                        </button>
+                        <button onClick={() => { setEditingGoal(null); setShowForm(true); }} className="btn-primary text-[13px]">
+                            + Nova Meta
+                        </button>
+                    </div>
                 </div>
             }
         >
             <Head title="Metas" />
 
-            <div style={{ padding: '24px 0 40px' }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }} className="sm:px-8">
+            {/* Modals */}
+            <Modal show={showForm || !!editingGoal} onClose={() => { setShowForm(false); setEditingGoal(null); }} maxWidth="md">
+                <GoalForm goal={editingGoal} onClose={() => { setShowForm(false); setEditingGoal(null); }} />
+            </Modal>
+            <SavingsTransferModal show={showSavingsModal} onClose={() => setShowSavingsModal(false)} />
 
-                    {allocations.renda_total > 0 && (
-                        <div style={{ ...S.card, padding: '16px 20px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(13,148,136,0.04)', border: '1px solid rgba(13,148,136,0.14)' }}>
-                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(13,148,136,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#0d9488">
+            <div className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10">
+
+                {/* Monthly savings info */}
+                {allocations.renda_total > 0 && (
+                    <div className="flex items-center justify-between gap-4 bg-[#00B679]/5 border border-[#00B679]/15 rounded-xl p-4 mb-3">
+                        <div className="flex items-center gap-4">
+                            <div className="w-9 h-9 rounded-lg bg-[#00B679]/10 flex items-center justify-center flex-shrink-0">
+                                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#00B679">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                                 </svg>
                             </div>
                             <div>
-                                <div style={{ fontSize: '11px', fontWeight: 600, color: '#0d9488', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace' }}>Economia mensal para metas</div>
-                                <div style={{ ...S.mono, fontSize: '1.25rem', fontWeight: 600, color: '#1c1812' }}>
-                                    {fmt(allocations.economia.valor)}
-                                    <span style={{ fontSize: '12px', color: '#0d9488', marginLeft: '5px' }}>/ mês</span>
-                                </div>
+                                <p className="text-[10.5px] font-bold text-[#00916A] uppercase tracking-widest">Economia mensal para metas</p>
+                                <p className="font-mono text-[1.15rem] font-bold text-gray-900 mt-0.5">
+                                    {fmtN(allocations.economia.valor)}
+                                    <span className="text-[12px] text-[#00B679] font-normal ml-1.5">/ mês</span>
+                                </p>
                             </div>
                         </div>
-                    )}
+                        <button onClick={() => setShowSavingsModal(true)} className="text-[12px] font-semibold text-[#00B679] bg-[#00B679]/10 border border-[#00B679]/20 rounded-lg px-3 py-2 cursor-pointer hover:bg-[#00B679]/20 transition-colors whitespace-nowrap flex-shrink-0">
+                            + Adicionar à Poupança
+                        </button>
+                    </div>
+                )}
 
-                    <AllocationPanel goals={goals} totalSavings={allocations.economia.valor} />
+                <AllocationPanel goals={goals} totalSavings={allocations.economia.valor} />
 
-                    {(showForm || editingGoal) && (
-                        <GoalForm goal={editingGoal} onClose={() => { setShowForm(false); setEditingGoal(null); }} />
-                    )}
-
-                    {goals.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {goals.map((goal, gi) => (
-                                <div key={goal.id} style={{ ...S.card, padding: '22px', background: goal.completed ? 'rgba(13,148,136,0.03)' : '#ffffff', border: goal.completed ? '1px solid rgba(13,148,136,0.15)' : '1px solid rgba(0,0,0,0.07)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' }}>
+                {goals.length > 0 ? (
+                    <div className="space-y-3">
+                        {goals.map((goal, gi) => {
+                            const color = GOAL_COLORS[gi % GOAL_COLORS.length];
+                            return (
+                                <div key={goal.id} className={`bg-white rounded-xl border shadow-sm p-5 ${goal.completed ? 'border-[#00B679]/20 bg-[#00B679]/2' : 'border-black/7'}`}>
+                                    <div className="flex items-start justify-between mb-4">
                                         <div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: GOAL_COLORS[gi % GOAL_COLORS.length] }} />
-                                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#1c1812' }}>{goal.name}</h3>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
+                                                <h3 className="text-[15px] font-semibold text-gray-900">{goal.name}</h3>
                                                 {goal.completed && (
-                                                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: 'rgba(13,148,136,0.1)', color: '#0d9488' }}>✓ Concluída</span>
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00B679]/10 text-[#00916A]">✓ Concluída</span>
                                                 )}
                                             </div>
                                             {goal.deadline && (
-                                                <p style={{ fontSize: '11px', color: '#a39888' }}>Prazo: {new Date(goal.deadline).toLocaleDateString('pt-BR')}</p>
+                                                <p className="text-[11px] text-gray-400 ml-4">Prazo: {new Date(goal.deadline).toLocaleDateString('pt-BR')}</p>
                                             )}
                                         </div>
-                                        <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
-                                            <button onClick={() => { setEditingGoal(goal); setShowForm(false); }} style={{ fontSize: '12px', fontWeight: 600, color: '#b8790a', background: 'none', border: 'none', cursor: 'pointer' }}>Editar</button>
-                                            <button onClick={() => handleDelete(goal.id)} style={{ fontSize: '12px', fontWeight: 600, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}>Excluir</button>
+                                        <div className="flex gap-3 flex-shrink-0">
+                                            <button onClick={() => { setEditingGoal(goal); setShowForm(false); }} className="text-[12px] font-semibold text-[#00B679] bg-none border-none cursor-pointer hover:underline">Editar</button>
+                                            <button onClick={() => handleDelete(goal.id)} className="text-[12px] font-semibold text-red-500 bg-none border-none cursor-pointer hover:underline">Excluir</button>
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                                        <div style={{ flex: 1, height: '8px', background: 'rgba(0,0,0,0.07)', borderRadius: '999px', overflow: 'hidden' }}>
-                                            <div style={{
-                                                height: '100%', borderRadius: '999px', transition: 'width 0.7s',
+                                    {/* Progress bar */}
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="flex-1 h-2 bg-black/6 rounded-full overflow-hidden">
+                                            <div className="h-full rounded-full transition-all duration-700" style={{
                                                 width: `${goal.progresso}%`,
-                                                background: goal.completed ? '#0d9488' : `linear-gradient(90deg, ${GOAL_COLORS[gi % GOAL_COLORS.length]}, ${GOAL_COLORS[(gi + 2) % GOAL_COLORS.length]})`,
+                                                background: goal.completed ? '#00B679' : color,
                                             }} />
                                         </div>
-                                        <span style={{ ...S.mono, fontSize: '13px', fontWeight: 700, color: '#1c1812', minWidth: '38px', textAlign: 'right' }}>{goal.progresso}%</span>
+                                        <span className="font-mono text-[13px] font-bold text-gray-800 min-w-[38px] text-right">{goal.progresso}%</span>
                                     </div>
 
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                                        <span style={{ ...S.mono, fontSize: '12px', color: '#6b6458' }}>
-                                            {fmt(goal.current_amount)} <span style={{ color: '#a39888' }}>de</span> {fmt(goal.target_amount)}
+                                    {/* Amounts */}
+                                    <div className="flex flex-wrap justify-between gap-3">
+                                        <span className="font-mono text-[12.5px] text-gray-600">
+                                            {fmtN(goal.current_amount)} <span className="text-gray-400">de</span> {fmtN(goal.target_amount)}
                                         </span>
                                         {goal.eta && !goal.completed && (
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#b8790a', fontWeight: 500 }}>
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
+                                            <div className="flex flex-col items-end gap-0.5">
+                                                <span className="flex items-center gap-1.5 text-[12.5px] font-medium" style={{ color }}>
+                                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                     {goal.eta.data_estimada} ({goal.eta.meses}m)
                                                 </span>
-                                                <span style={{ fontSize: '11px', color: '#a39888' }}>
-                                                    {fmt(goal.eta.economia_mensal)}/mês ({Number(goal.savings_pct).toFixed(0)}% da economia)
+                                                <span className="text-[11px] text-gray-400">
+                                                    {fmtN(goal.eta.economia_mensal)}/mês · {Number(goal.savings_pct).toFixed(0)}% da economia
                                                 </span>
                                             </div>
                                         )}
@@ -373,21 +418,32 @@ export default function Index({ goals, allocations }) {
 
                                     {!goal.completed && <FastTrackSimulator goal={goal} />}
                                 </div>
-                            ))}
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-14 text-center">
+                        <div className="w-12 h-12 rounded-xl bg-[#00B679]/8 flex items-center justify-center mx-auto mb-4">
+                            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#00B679">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                            </svg>
                         </div>
-                    ) : (
-                        <div style={{ ...S.card, padding: '60px 24px', textAlign: 'center' }}>
-                            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'rgba(184,121,10,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#b8790a">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                                </svg>
-                            </div>
-                            <p style={{ fontSize: '14px', color: '#6b6458', marginBottom: '20px' }}>Nenhuma meta cadastrada ainda</p>
-                            <button onClick={() => setShowForm(true)} className="btn-primary" style={{ fontSize: '13px' }}>Criar primeira meta</button>
-                        </div>
-                    )}
-                </div>
+                        <p className="text-[14px] font-medium text-gray-600 mb-5">Nenhuma meta cadastrada ainda</p>
+                        <button onClick={() => setShowForm(true)} className="btn-primary text-[13px]">Criar primeira meta</button>
+                    </div>
+                )}
             </div>
+
+            {/* FAB */}
+            <button
+                onClick={() => { setEditingGoal(null); setShowForm(true); }}
+                title="Nova Meta"
+                className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 z-30 hover:scale-105 active:scale-95 transition-transform"
+            >
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#fff">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </button>
         </AuthenticatedLayout>
     );
 }
