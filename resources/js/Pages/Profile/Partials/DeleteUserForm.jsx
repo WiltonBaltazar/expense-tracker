@@ -2,10 +2,6 @@ import Modal from '@/Components/Modal';
 import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
-const inp = { width: '100%', padding: '10px 12px', borderRadius: '10px', background: '#faf8f3', border: '1px solid rgba(0,0,0,0.1)', color: '#1c1812', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', outline: 'none' };
-const fi = (e) => { e.target.style.borderColor = 'rgba(220,38,38,0.4)'; e.target.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.08)'; };
-const fo = (e) => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.boxShadow = 'none'; };
-
 export default function DeleteUserForm() {
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const passwordInput = useRef();
@@ -30,26 +26,24 @@ export default function DeleteUserForm() {
 
     return (
         <section>
-            <div style={{ marginBottom: '18px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#dc2626', marginBottom: '4px' }}>Excluir Conta</h3>
-                <p style={{ fontSize: '12px', color: '#6b6458', lineHeight: 1.6 }}>
+            <div className="mb-4">
+                <h3 className="text-[15px] font-bold text-red-600 mb-1">Excluir Conta</h3>
+                <p className="text-[13px] text-gray-500 leading-relaxed">
                     Após excluir sua conta, todos os dados serão permanentemente removidos. Faça backup de qualquer informação que deseje manter.
                 </p>
             </div>
 
-            <button
-                onClick={() => setConfirmingDeletion(true)}
-                style={{ padding: '9px 20px', borderRadius: '10px', background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.18)', color: '#dc2626', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'DM Sans, sans-serif' }}
-            >
+            <button onClick={() => setConfirmingDeletion(true)}
+                className="px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-600 text-[13px] font-semibold cursor-pointer transition-all hover:bg-red-100">
                 Excluir Conta
             </button>
 
             <Modal show={confirmingDeletion} onClose={closeModal}>
-                <div style={{ background: '#ffffff', borderRadius: '20px', padding: '32px', border: '1px solid rgba(220,38,38,0.15)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
-                    <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#1c1812', marginBottom: '8px' }}>
+                <div className="bg-white rounded-2xl p-8 border border-red-100 shadow-2xl">
+                    <h2 className="text-[17px] font-bold text-gray-900 mb-2">
                         Tem certeza que deseja excluir sua conta?
                     </h2>
-                    <p style={{ fontSize: '13px', color: '#6b6458', lineHeight: 1.6, marginBottom: '24px' }}>
+                    <p className="text-[13px] text-gray-500 leading-relaxed mb-6">
                         Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos. Confirme com sua senha.
                     </p>
 
@@ -58,24 +52,19 @@ export default function DeleteUserForm() {
                             ref={passwordInput}
                             type="password"
                             value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            style={inp}
+                            onChange={e => setData('password', e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[14px] outline-none focus:border-red-400/60 focus:ring-2 focus:ring-red-400/10 transition-colors"
                             placeholder="Sua senha"
                             autoFocus
-                            onFocus={fi}
-                            onBlur={fo}
                         />
-                        {errors.password && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '6px' }}>{errors.password}</p>}
+                        {errors.password && <p className="text-[12px] text-red-500 mt-1.5">{errors.password}</p>}
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                            <button type="button" onClick={closeModal} className="btn-secondary" style={{ fontSize: '13px', padding: '9px 20px' }}>
+                        <div className="flex justify-end gap-2.5 mt-5">
+                            <button type="button" onClick={closeModal} className="btn-secondary text-[13px]">
                                 Cancelar
                             </button>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                style={{ padding: '9px 20px', borderRadius: '10px', background: '#dc2626', color: '#ffffff', fontSize: '13px', fontWeight: 700, border: 'none', cursor: processing ? 'not-allowed' : 'pointer', opacity: processing ? 0.6 : 1, transition: 'all 0.15s', fontFamily: 'DM Sans, sans-serif' }}
-                            >
+                            <button type="submit" disabled={processing}
+                                className="px-5 py-2.5 rounded-lg bg-red-600 text-white text-[13px] font-semibold border-none cursor-pointer transition-all hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                 {processing ? 'Excluindo...' : 'Excluir Conta'}
                             </button>
                         </div>

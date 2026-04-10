@@ -1,6 +1,8 @@
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
 
+const inputCls = 'w-full px-3.5 py-2.5 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[14px] outline-none focus:border-[#00B679]/60 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors placeholder:text-gray-400';
+
 export default function ConfirmPassword() {
     const { data, setData, post, processing, errors, reset } = useForm({ password: '' });
 
@@ -13,42 +15,32 @@ export default function ConfirmPassword() {
         <GuestLayout>
             <Head title="Confirmar Senha" />
 
-            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-                <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'rgba(184,121,10,0.1)', border: '1px solid rgba(184,121,10,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#b8790a">
+            <div className="text-center mb-7">
+                <div className="w-13 h-13 rounded-[14px] bg-[#00B679]/10 border border-[#00B679]/18 flex items-center justify-center mx-auto mb-3.5" style={{ width: 52, height: 52 }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#00B679">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                     </svg>
                 </div>
-                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.6rem', fontWeight: 700, color: '#1c1812', marginBottom: '6px' }}>
-                    Área segura
-                </h2>
-                <p style={{ fontSize: '14px', color: '#6b6458', lineHeight: 1.6 }}>
-                    Confirme sua senha para continuar.
-                </p>
+                <h2 className="text-[1.6rem] font-bold text-gray-900 leading-tight mb-1.5">Área segura</h2>
+                <p className="text-[14px] text-gray-500 leading-relaxed">Confirme sua senha para continuar.</p>
             </div>
 
-            <form onSubmit={submit}>
-                <div style={{ marginBottom: '24px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#6b6458', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '8px', fontFamily: 'DM Mono, monospace' }}>
-                        Senha
-                    </label>
+            <form onSubmit={submit} className="space-y-5">
+                <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Senha</label>
                     <input
                         type="password"
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
-                        style={{ width: '100%', padding: '11px 14px', borderRadius: '12px', background: '#faf8f3', border: '1px solid rgba(0,0,0,0.1)', color: '#1c1812', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', outline: 'none' }}
+                        className={inputCls}
                         autoFocus
                         placeholder="••••••••"
-                        onFocus={(e) => { e.target.style.borderColor = 'rgba(184,121,10,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(184,121,10,0.1)'; }}
-                        onBlur={(e)  => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.boxShadow = 'none'; }}
                     />
-                    {errors.password && <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '6px' }}>{errors.password}</p>}
+                    {errors.password && <p className="text-[12px] text-red-500 mt-1">{errors.password}</p>}
                 </div>
-                <button
-                    type="submit"
-                    disabled={processing}
-                    style={{ width: '100%', padding: '13px', borderRadius: '12px', background: processing ? 'rgba(184,121,10,0.5)' : '#b8790a', color: '#ffffff', fontWeight: 700, fontSize: '15px', border: 'none', cursor: processing ? 'not-allowed' : 'pointer', transition: 'all 0.15s', fontFamily: 'DM Sans, sans-serif' }}
-                >
+
+                <button type="submit" disabled={processing}
+                    className="w-full py-3 rounded-lg bg-[#00B679] text-white font-semibold text-[15px] border-none cursor-pointer transition-all hover:bg-[#009D69] disabled:opacity-50 disabled:cursor-not-allowed">
                     {processing ? 'Confirmando...' : 'Confirmar →'}
                 </button>
             </form>

@@ -1,10 +1,7 @@
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 
-const lbl = { fontSize: '11px', fontWeight: 600, color: '#6b6458', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '7px', fontFamily: 'DM Mono, monospace' };
-const inp = { width: '100%', padding: '10px 12px', borderRadius: '10px', background: '#faf8f3', border: '1px solid rgba(0,0,0,0.1)', color: '#1c1812', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', outline: 'none' };
-const fi = (e) => { e.target.style.borderColor = 'rgba(184,121,10,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(184,121,10,0.1)'; };
-const fo = (e) => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.boxShadow = 'none'; };
+const inputCls = 'w-full px-3.5 py-2.5 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[14px] outline-none focus:border-[#00B679]/60 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors';
 
 export default function UpdateProfileInformation({ mustVerifyEmail, status }) {
     const user = usePage().props.auth.user;
@@ -20,44 +17,44 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status }) {
 
     return (
         <section>
-            <div style={{ marginBottom: '22px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1c1812', marginBottom: '4px' }}>Informações do Perfil</h3>
-                <p style={{ fontSize: '12px', color: '#6b6458' }}>Atualize seu nome e endereço de email.</p>
+            <div className="mb-5">
+                <h3 className="text-[15px] font-bold text-gray-900 mb-1">Informações do Perfil</h3>
+                <p className="text-[13px] text-gray-500">Atualize seu nome e endereço de email.</p>
             </div>
 
-            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={submit} className="space-y-4">
                 <div>
-                    <label style={lbl}>Nome</label>
-                    <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} style={inp} autoFocus autoComplete="name" onFocus={fi} onBlur={fo} />
-                    {errors.name && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '5px' }}>{errors.name}</p>}
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nome</label>
+                    <input type="text" value={data.name} onChange={e => setData('name', e.target.value)} className={inputCls} autoFocus autoComplete="name" />
+                    {errors.name && <p className="text-[12px] text-red-500 mt-1">{errors.name}</p>}
                 </div>
                 <div>
-                    <label style={lbl}>Email</label>
-                    <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} style={inp} autoComplete="username" onFocus={fi} onBlur={fo} />
-                    {errors.email && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '5px' }}>{errors.email}</p>}
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+                    <input type="email" value={data.email} onChange={e => setData('email', e.target.value)} className={inputCls} autoComplete="username" />
+                    {errors.email && <p className="text-[12px] text-red-500 mt-1">{errors.email}</p>}
                 </div>
 
                 {mustVerifyEmail && user.email_verified_at === null && (
-                    <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(184,121,10,0.06)', border: '1px solid rgba(184,121,10,0.18)' }}>
-                        <p style={{ fontSize: '13px', color: '#92600c' }}>
+                    <div className="px-4 py-3 rounded-lg bg-[#00B679]/6 border border-[#00B679]/18">
+                        <p className="text-[13px] text-[#00916A]">
                             Seu email não foi verificado.{' '}
                             <Link href={route('verification.send')} method="post" as="button"
-                                style={{ fontWeight: 600, color: '#b8790a', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '13px' }}>
+                                className="font-semibold text-[#00B679] bg-none border-none cursor-pointer text-[13px] hover:underline">
                                 Reenviar verificação
                             </Link>
                         </p>
                         {status === 'verification-link-sent' && (
-                            <p style={{ fontSize: '12px', color: '#047857', marginTop: '6px' }}>Link de verificação enviado!</p>
+                            <p className="text-[12px] text-[#00916A] mt-1.5">Link de verificação enviado!</p>
                         )}
                     </div>
                 )}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <button type="submit" disabled={processing} className="btn-primary" style={{ fontSize: '13px', padding: '9px 22px' }}>
+                <div className="flex items-center gap-4 pt-1">
+                    <button type="submit" disabled={processing} className="btn-primary text-[13px]">
                         {processing ? 'Salvando...' : 'Salvar'}
                     </button>
                     <Transition show={recentlySuccessful} enter="transition ease-in-out" enterFrom="opacity-0" leave="transition ease-in-out" leaveTo="opacity-0">
-                        <p style={{ fontSize: '12px', color: '#047857' }}>Salvo!</p>
+                        <p className="text-[12.5px] text-[#00916A] font-medium">Salvo!</p>
                     </Transition>
                 </div>
             </form>

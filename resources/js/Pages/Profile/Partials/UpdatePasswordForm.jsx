@@ -2,10 +2,7 @@ import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
 import { useRef } from 'react';
 
-const lbl = { fontSize: '11px', fontWeight: 600, color: '#6b6458', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '7px', fontFamily: 'DM Mono, monospace' };
-const inp = { width: '100%', padding: '10px 12px', borderRadius: '10px', background: '#faf8f3', border: '1px solid rgba(0,0,0,0.1)', color: '#1c1812', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', outline: 'none' };
-const fi = (e) => { e.target.style.borderColor = 'rgba(184,121,10,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(184,121,10,0.1)'; };
-const fo = (e) => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.boxShadow = 'none'; };
+const inputCls = 'w-full px-3.5 py-2.5 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[14px] outline-none focus:border-[#00B679]/60 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors';
 
 export default function UpdatePasswordForm() {
     const passwordInput = useRef();
@@ -23,42 +20,42 @@ export default function UpdatePasswordForm() {
             preserveScroll: true,
             onSuccess: () => reset(),
             onError: (errors) => {
-                if (errors.password)          { reset('password', 'password_confirmation'); passwordInput.current.focus(); }
-                if (errors.current_password)  { reset('current_password'); currentPasswordInput.current.focus(); }
+                if (errors.password)         { reset('password', 'password_confirmation'); passwordInput.current.focus(); }
+                if (errors.current_password) { reset('current_password'); currentPasswordInput.current.focus(); }
             },
         });
     };
 
     return (
         <section>
-            <div style={{ marginBottom: '22px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1c1812', marginBottom: '4px' }}>Alterar Senha</h3>
-                <p style={{ fontSize: '12px', color: '#6b6458' }}>Use uma senha longa e aleatória para manter sua conta segura.</p>
+            <div className="mb-5">
+                <h3 className="text-[15px] font-bold text-gray-900 mb-1">Alterar Senha</h3>
+                <p className="text-[13px] text-gray-500">Use uma senha longa e aleatória para manter sua conta segura.</p>
             </div>
 
-            <form onSubmit={updatePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={updatePassword} className="space-y-4">
                 <div>
-                    <label style={lbl}>Senha Atual</label>
-                    <input ref={currentPasswordInput} type="password" value={data.current_password} onChange={(e) => setData('current_password', e.target.value)} style={inp} autoComplete="current-password" onFocus={fi} onBlur={fo} />
-                    {errors.current_password && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '5px' }}>{errors.current_password}</p>}
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Senha Atual</label>
+                    <input ref={currentPasswordInput} type="password" value={data.current_password} onChange={e => setData('current_password', e.target.value)} className={inputCls} autoComplete="current-password" />
+                    {errors.current_password && <p className="text-[12px] text-red-500 mt-1">{errors.current_password}</p>}
                 </div>
                 <div>
-                    <label style={lbl}>Nova Senha</label>
-                    <input ref={passwordInput} type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} style={inp} autoComplete="new-password" onFocus={fi} onBlur={fo} />
-                    {errors.password && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '5px' }}>{errors.password}</p>}
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nova Senha</label>
+                    <input ref={passwordInput} type="password" value={data.password} onChange={e => setData('password', e.target.value)} className={inputCls} autoComplete="new-password" />
+                    {errors.password && <p className="text-[12px] text-red-500 mt-1">{errors.password}</p>}
                 </div>
                 <div>
-                    <label style={lbl}>Confirmar Nova Senha</label>
-                    <input type="password" value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)} style={inp} autoComplete="new-password" onFocus={fi} onBlur={fo} />
-                    {errors.password_confirmation && <p style={{ fontSize: '11px', color: '#dc2626', marginTop: '5px' }}>{errors.password_confirmation}</p>}
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Confirmar Nova Senha</label>
+                    <input type="password" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} className={inputCls} autoComplete="new-password" />
+                    {errors.password_confirmation && <p className="text-[12px] text-red-500 mt-1">{errors.password_confirmation}</p>}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <button type="submit" disabled={processing} className="btn-primary" style={{ fontSize: '13px', padding: '9px 22px' }}>
+                <div className="flex items-center gap-4 pt-1">
+                    <button type="submit" disabled={processing} className="btn-primary text-[13px]">
                         {processing ? 'Salvando...' : 'Salvar'}
                     </button>
                     <Transition show={recentlySuccessful} enter="transition ease-in-out" enterFrom="opacity-0" leave="transition ease-in-out" leaveTo="opacity-0">
-                        <p style={{ fontSize: '12px', color: '#047857' }}>Salvo!</p>
+                        <p className="text-[12.5px] text-[#00916A] font-medium">Salvo!</p>
                     </Transition>
                 </div>
             </form>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,19 +11,19 @@
     }
     body {
         font-family: 'DM Sans', sans-serif;
-        background: #f7f4ee;
-        color: #1c1812;
+        background: #F5F5F5;
+        color: #1A1A1A;
         -webkit-font-smoothing: antialiased;
     }
     input[type="date"]::-webkit-calendar-picker-indicator {
         filter: opacity(0.4);
     }
     input[type="range"] {
-        accent-color: #b8790a;
+        accent-color: #00B679;
     }
     select option {
         background: #ffffff;
-        color: #1c1812;
+        color: #1A1A1A;
     }
 }
 
@@ -31,53 +31,53 @@
     .card {
         background: #ffffff;
         border: 1px solid rgba(0,0,0,0.07);
-        border-radius: 16px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
     .btn-primary {
-        @apply inline-flex items-center justify-center px-4 py-2.5 text-sm rounded-xl transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
-        background: #b8790a;
+        @apply inline-flex items-center justify-center px-4 py-2.5 text-sm rounded-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+        background: #00B679;
         color: #ffffff;
-        font-weight: 700;
+        font-weight: 600;
         letter-spacing: 0.01em;
     }
     .btn-primary:hover {
-        background: #9e6608;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(184,121,10,0.25);
+        background: #009D69;
+        box-shadow: 0 4px 14px rgba(0,182,121,0.25);
     }
-    .btn-primary:active  { background: #885706; transform: none; }
-    .btn-primary:focus   { outline: none; box-shadow: 0 0 0 2px rgba(184,121,10,0.35); }
-    .btn-primary:disabled { transform: none; box-shadow: none; }
+    .btn-primary:active  { background: #008A5C; }
+    .btn-primary:focus   { outline: none; box-shadow: 0 0 0 3px rgba(0,182,121,0.25); }
+    .btn-primary:disabled { box-shadow: none; }
 
     .btn-secondary {
-        @apply inline-flex items-center justify-center px-4 py-2.5 text-sm rounded-xl transition-all duration-150;
+        @apply inline-flex items-center justify-center px-4 py-2.5 text-sm rounded-lg transition-all duration-150;
         background: transparent;
-        color: #6b6458;
+        color: #737373;
         font-weight: 500;
-        border: 1px solid rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.12);
     }
-    .btn-secondary:hover  { color: #1c1812; border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.03); }
+    .btn-secondary:hover  { color: #1A1A1A; border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.03); }
     .btn-secondary:focus  { outline: none; }
 
     .input-field {
-        @apply w-full rounded-xl text-sm transition-colors duration-150;
-        background: #ffffff;
-        color: #1c1812;
+        @apply w-full rounded-lg text-sm transition-colors duration-150;
+        background: #FAFAFA;
+        color: #1A1A1A;
         border: 1px solid rgba(0,0,0,0.12);
-        padding: 10px 12px;
+        padding: 9px 12px;
         font-family: 'DM Sans', sans-serif;
     }
-    .input-field::placeholder { color: #a39888; }
+    .input-field::placeholder { color: #9CA3AF; }
     .input-field:focus {
         outline: none;
-        border-color: rgba(184,121,10,0.5);
-        box-shadow: 0 0 0 3px rgba(184,121,10,0.1);
+        border-color: rgba(0,182,121,0.5);
+        box-shadow: 0 0 0 3px rgba(0,182,121,0.1);
+        background: #FFFFFF;
     }
     select.input-field {
-        background-color: #ffffff;
-        color: #1c1812;
+        background-color: #FAFAFA;
+        color: #1A1A1A;
     }
 
     .badge {
@@ -85,14 +85,15 @@
     }
     .badge-blue    { background: rgba(37,99,235,0.1);   color: #1d4ed8; }
     .badge-amber   { background: rgba(217,119,6,0.1);   color: #b45309; }
+    .badge-green   { background: rgba(0,182,121,0.1);   color: #00B679; }
     .badge-emerald { background: rgba(5,150,105,0.1);   color: #047857; }
     .badge-red     { background: rgba(220,38,38,0.1);   color: #dc2626; }
-    .badge-brand   { background: rgba(184,121,10,0.12); color: #92600c; }
+    .badge-brand   { background: rgba(0,182,121,0.1);   color: #00916A; }
 }
 
-::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar        { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: rgba(0,0,0,0.12); border-radius: 9999px; }
+::-webkit-scrollbar-thumb  { background: rgba(0,0,0,0.1); border-radius: 9999px; }
 
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }

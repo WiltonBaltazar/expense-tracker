@@ -1,6 +1,8 @@
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
 
+const inputCls = 'w-full px-3.5 py-2.5 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[14px] outline-none focus:border-[#00B679]/60 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors placeholder:text-gray-400';
+
 export default function ForgotPassword({ status }) {
     const { data, setData, post, processing, errors } = useForm({ email: '' });
 
@@ -9,48 +11,31 @@ export default function ForgotPassword({ status }) {
         post(route('password.email'));
     };
 
-    const input = { width: '100%', padding: '11px 14px', borderRadius: '12px', background: '#faf8f3', border: '1px solid rgba(0,0,0,0.1)', color: '#1c1812', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', outline: 'none' };
-
     return (
         <GuestLayout>
             <Head title="Recuperar Senha" />
 
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.7rem', fontWeight: 700, color: '#1c1812', marginBottom: '6px', lineHeight: 1.2 }}>
-                Esqueceu a senha?
-            </h2>
-            <p style={{ fontSize: '14px', color: '#6b6458', marginBottom: '28px', lineHeight: 1.6 }}>
+            <h2 className="text-[1.6rem] font-bold text-gray-900 leading-tight mb-1">Esqueceu a senha?</h2>
+            <p className="text-[14px] text-gray-500 leading-relaxed mb-7">
                 Informe seu email e enviaremos um link para redefinir sua senha.
             </p>
 
             {status && (
-                <div style={{ marginBottom: '20px', padding: '10px 14px', borderRadius: '10px', background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.2)', fontSize: '13px', color: '#047857' }}>
+                <div className="mb-5 px-3.5 py-2.5 rounded-lg bg-[#00B679]/8 border border-[#00B679]/20 text-[13px] text-[#00916A]">
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit}>
-                <div style={{ marginBottom: '24px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#6b6458', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '8px', fontFamily: 'DM Mono, monospace' }}>
-                        Email
-                    </label>
-                    <input
-                        type="email"
-                        value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
-                        style={input}
-                        autoFocus
-                        placeholder="seu@email.com"
-                        onFocus={(e) => { e.target.style.borderColor = 'rgba(184,121,10,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(184,121,10,0.1)'; }}
-                        onBlur={(e)  => { e.target.style.borderColor = 'rgba(0,0,0,0.1)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                    {errors.email && <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '6px' }}>{errors.email}</p>}
+            <form onSubmit={submit} className="space-y-5">
+                <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+                    <input type="email" value={data.email} onChange={e => setData('email', e.target.value)}
+                        className={inputCls} autoFocus placeholder="seu@email.com" />
+                    {errors.email && <p className="text-[12px] text-red-500 mt-1">{errors.email}</p>}
                 </div>
 
-                <button
-                    type="submit"
-                    disabled={processing}
-                    style={{ width: '100%', padding: '13px', borderRadius: '12px', background: processing ? 'rgba(184,121,10,0.5)' : '#b8790a', color: '#ffffff', fontWeight: 700, fontSize: '15px', border: 'none', cursor: processing ? 'not-allowed' : 'pointer', transition: 'all 0.15s', fontFamily: 'DM Sans, sans-serif' }}
-                >
+                <button type="submit" disabled={processing}
+                    className="w-full py-3 rounded-lg bg-[#00B679] text-white font-semibold text-[15px] border-none cursor-pointer transition-all hover:bg-[#009D69] disabled:opacity-50 disabled:cursor-not-allowed">
                     {processing ? 'Enviando...' : 'Enviar link de recuperação'}
                 </button>
             </form>
