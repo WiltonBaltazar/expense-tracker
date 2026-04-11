@@ -13,6 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
 
+        $middleware->alias([
+            'super.admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
+            'admin.domain' => \App\Http\Middleware\EnsureAdminDomain::class,
+            'feature' => \App\Http\Middleware\EnsureSubscriptionFeature::class,
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,

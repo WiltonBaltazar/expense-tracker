@@ -14,6 +14,17 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        User::updateOrCreate(
+            ['email' => 'superadmin@wiltonbm.click'],
+            [
+                'name' => 'Super Admin',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+                'is_super_admin' => true,
+                'admin_domain' => config('admin.domain'),
+            ]
+        );
+
         $user = User::create([
             'name' => 'Test User',
             'email' => 'test@example.com',

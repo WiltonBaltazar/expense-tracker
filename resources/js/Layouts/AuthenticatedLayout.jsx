@@ -1,10 +1,14 @@
 import { Link, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { getPageMotionProps } from '@/lib/motion';
+import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
 
 const NAV_ITEMS = [
     { name: 'painel',   label: 'Painel',    href: 'dashboard',     match: 'dashboard'   },
     { name: 'rendas',   label: 'Rendas',    href: 'incomes.index', match: 'incomes.*'   },
     { name: 'despesas', label: 'Despesas',  href: 'expenses.index',match: 'expenses.*'  },
     { name: 'metas',    label: 'Metas',     href: 'goals.index',   match: 'goals.*'     },
+    { name: 'admin',    label: 'Admin',     href: 'admin.dashboard', match: 'admin.*'   },
     { name: 'ajustes',  label: 'Ajustes',   href: 'settings.edit', match: 'settings.*'  },
 ];
 
@@ -35,6 +39,11 @@ const NAV_ICONS = {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
     ),
+    admin: (
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h3A2.25 2.25 0 0111.25 6v3A2.25 2.25 0 019 11.25H6A2.25 2.25 0 013.75 9V6zM12.75 6A2.25 2.25 0 0115 3.75h3A2.25 2.25 0 0120.25 6v3A2.25 2.25 0 0118 11.25h-3A2.25 2.25 0 0112.75 9V6zM3.75 15A2.25 2.25 0 016 12.75h3A2.25 2.25 0 0111.25 15v3A2.25 2.25 0 019 20.25H6A2.25 2.25 0 013.75 18v-3zM12.75 15A2.25 2.25 0 0115 12.75h3A2.25 2.25 0 0120.25 15v3A2.25 2.25 0 0118 20.25h-3A2.25 2.25 0 0112.75 18v-3z" />
+        </svg>
+    ),
 };
 
 const LogoIcon = () => (
@@ -44,8 +53,33 @@ const LogoIcon = () => (
 );
 
 export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
+    const page = usePage();
+    const user = page.props.auth.user;
+    const { reduceMotion } = useMotionPreference();
     const initial = user.name.charAt(0).toUpperCase();
+    const pageMotion = getPageMotionProps(reduceMotion);
+    const navItems = user?.is_super_admin
+        ? NAV_ITEMS
+        : NAV_ITEMS.filter((item) => item.name !== 'admin');
+
+    const isActiveRoute = (match) => {
+        if (typeof route !== 'undefined') {
+            try {
+                return route().current(match);
+            } catch (_) {
+                // Fallback below
+            }
+        }
+
+        const pathname = page?.url?.split('?')[0] || '';
+        const base = match.replace('.*', '');
+
+        if (match.includes('.*')) {
+            return pathname.includes(base);
+        }
+
+        return pathname === `/${base}` || (base === 'dashboard' && pathname === '/dashboard');
+    };
 
     return (
         <div style={{ minHeight: '100vh', background: '#F5F5F5' }}>
@@ -68,8 +102,8 @@ export default function AuthenticatedLayout({ header, children }) {
 
                 {/* Nav */}
                 <nav style={{ flex: 1, padding: '10px 10px' }}>
-                    {NAV_ITEMS.map((item) => {
-                        const active = route().current(item.match);
+                    {navItems.map((item) => {
+                        const active = isActiveRoute(item.match);
                         return (
                             <Link
                                 key={item.name}
@@ -149,14 +183,21 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
                     </header>
                 )}
-                <main>{children}</main>
+                <motion.main
+                    key={page?.url || 'page'}
+                    initial={pageMotion.initial}
+                    animate={pageMotion.animate}
+                    transition={pageMotion.transition}
+                >
+                    {children}
+                </motion.main>
             </div>
 
             {/* ── Mobile bottom nav ── */}
             <nav className="lg:hidden pb-safe" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: '#FFFFFF', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
                 <div style={{ height: '62px', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 4px' }}>
-                    {NAV_ITEMS.map((item) => {
-                        const active = route().current(item.match);
+                    {navItems.map((item) => {
+                        const active = isActiveRoute(item.match);
                         return (
                             <Link
                                 key={item.name}

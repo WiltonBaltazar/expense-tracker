@@ -2,7 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import MonthSelector from '@/Components/MonthSelector';
 import { Head, useForm } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { getStaggerMotionProps, staggerItem } from '@/lib/motion';
+import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
 
 const fmt  = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' MT';
 const fmtN = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -85,14 +88,17 @@ function IncomeForm({ onClose, income = null, currentMonth }) {
 // ── Income row (transaction style) ───────────────────────────────────────────
 function IncomeRow({ income, onEdit, onDelete }) {
     const [hovered, setHovered] = useState(false);
+    const { reduceMotion } = useMotionPreference();
     const color  = SOURCE_COLORS[income.source] || '#6B7280';
     const initial = (SOURCE_LABELS[income.source] || income.source).charAt(0).toUpperCase();
 
     return (
-        <div
+        <motion.div
             className={`flex items-center gap-3 px-4 py-2.5 border-b border-black/5 last:border-0 transition-colors ${hovered ? 'bg-gray-50' : ''}`}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
+            whileHover={reduceMotion ? undefined : { y: -1 }}
+            transition={{ duration: reduceMotion ? 0 : 0.15 }}
         >
             {/* Icon */}
             <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[13px] font-bold"
@@ -138,7 +144,7 @@ function IncomeRow({ income, onEdit, onDelete }) {
                 <span className="text-gray-300">·</span>
                 <button onClick={() => onDelete(income.id)} className="text-red-500">Excluir</button>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
@@ -147,6 +153,8 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
     const [showForm, setShowForm] = useState(false);
     const [editingIncome, setEditingIncome] = useState(null);
     const { delete: destroy } = useForm();
+    const { reduceMotion } = useMotionPreference();
+    const staggerProps = getStaggerMotionProps(reduceMotion);
 
     function handleDelete(id) {
         if (confirm('Remover esta renda?')) destroy(route('incomes.destroy', id));
@@ -168,10 +176,15 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
         >
             <Head title="Rendas" />
 
-            <div className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10">
+            <motion.div
+                className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10"
+                variants={staggerProps.variants}
+                initial={staggerProps.initial}
+                animate={staggerProps.animate}
+            >
 
                 {/* Summary card */}
-                <div className="bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-4 flex items-center justify-between flex-wrap gap-4">
+                <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-4 flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-4">
                         <div className="w-11 h-11 rounded-xl bg-[#00B679]/10 flex items-center justify-center flex-shrink-0">
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#00B679">
@@ -186,7 +199,7 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
                     <span className="text-[12.5px] font-semibold text-[#00B679] bg-[#00B679]/8 px-3 py-1 rounded-full">
                         {incomes.length} entrada{incomes.length !== 1 ? 's' : ''}
                     </span>
-                </div>
+                </motion.div>
 
                 {/* Form modal */}
                 <Modal show={showForm || !!editingIncome} onClose={() => { setShowForm(false); setEditingIncome(null); }} maxWidth="lg">
@@ -195,7 +208,7 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
 
                 {/* List */}
                 {incomes.length > 0 ? (
-                    <div className="bg-white rounded-xl border border-black/7 shadow-sm overflow-hidden">
+                    <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm overflow-hidden">
                         {/* Desktop header */}
                         <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 border-b border-black/5">
                             <div className="w-9 flex-shrink-0" />
@@ -207,9 +220,9 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
                         {incomes.map(income => (
                             <IncomeRow key={income.id} income={income} onEdit={handleEdit} onDelete={handleDelete} />
                         ))}
-                    </div>
+                    </motion.div>
                 ) : (
-                    <div className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-14 text-center">
+                    <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-14 text-center">
                         <div className="w-12 h-12 rounded-xl bg-[#00B679]/8 flex items-center justify-center mx-auto mb-4">
                             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#00B679">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -218,17 +231,21 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
                         <p className="text-[14px] font-medium text-gray-600 mb-1">Nenhuma renda registrada neste mês</p>
                         <p className="text-[12.5px] text-gray-400 mb-5">Adicione suas rendas para acompanhar o histórico</p>
                         <button onClick={openNew} className="btn-primary text-[13px]">Adicionar renda</button>
-                    </div>
+                    </motion.div>
                 )}
-            </div>
+            </motion.div>
 
             {/* FAB */}
-            <button onClick={openNew}
-                className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 z-30 hover:scale-105 active:scale-95 transition-transform">
+            <motion.button
+                onClick={openNew}
+                className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 z-30 hover:scale-105 active:scale-95 transition-transform"
+                whileHover={reduceMotion ? undefined : { scale: 1.05 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.93 }}
+            >
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#fff">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-            </button>
+            </motion.button>
         </AuthenticatedLayout>
     );
 }

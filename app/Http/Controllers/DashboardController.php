@@ -41,13 +41,11 @@ class DashboardController extends Controller
 
         $activeGoals = $user->goals->where('completed', false);
 
-        $goals = $activeGoals->map(function ($goal) use ($user) {
-            $eta = $this->splitter->calculateGoalEta($user, $goal->remainingAmount(), (float) $goal->savings_pct);
+        $goals = $activeGoals->map(function ($goal) {
             return [
                 ...$goal->toArray(),
                 'progresso' => round($goal->progressPercentage(), 1),
                 'restante' => $goal->remainingAmount(),
-                'eta' => $eta,
             ];
         })->values();
 

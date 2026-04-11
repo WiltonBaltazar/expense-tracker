@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Carbon\Carbon;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -12,8 +13,15 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::created(function (User $user): void {
+            $user->ensureDefaultSubscription();
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +33,8 @@ class User extends Authenticatable
         'email',
         'password',
         'subscribed_at',
+        'is_super_admin',
+        'admin_domain',
     ];
 
     /**
@@ -47,6 +57,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'subscribed_at' => 'datetime',
+            'is_super_admin' => 'boolean',
             'password' => 'hashed',
         ];
     }
@@ -76,10 +87,129 @@ class User extends Authenticatable
         return $this->hasMany(SavingsTransfer::class);
     }
 
+    public function goalSavingsAllocations(): HasMany
+    {
+        return $this->hasMany(GoalSavingsAllocation::class);
+    }
+
+    public function goalTransfers(): HasMany
+    {
+        return $this->hasMany(GoalTransfer::class);
+    }
+
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(UserSubscription::class);
+    }
+
+    public function subscriptionEvents(): HasMany
+    {
+        return $this->hasMany(SubscriptionEvent::class);
+    }
+
     public function subscriptionStartMonth(): Carbon
     {
         $date = $this->subscribed_at ?? $this->created_at;
 
         return Carbon::parse($date)->startOfMonth();
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    public static function defaultPlanFeatures(): array
+    {
+        $featureKeys = collect(config('subscriptions.features', []))
+            ->filter(fn (array $meta) => ($meta['assignable'] ?? true) && (($meta['audience'] ?? 'user') === 'user'))
+            ->keys()
+            ->values()
+            ->all();
+
+        if (empty($featureKeys)) {
+            $featureKeys = [
+                'dashboard',
+                'incomes',
+                'expenses',
+                'goals',
+                'savings_wallet',
+            ];
+        }
+
+        return array_fill_keys($featureKeys, true);
+    }
+
+    public function ensureDefaultSubscription(): void
+    {
+        if ($this->subscription()->exists()) {
+            return;
+        }
+
+        $plan = SubscriptionPlan::query()
+            ->where('code', 'gratis')
+            ->first();
+
+        if (! $plan) {
+            return;
+        }
+
+        $subscription = $this->subscription()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'active',
+            'started_at' => $this->subscribed_at ?? $this->created_at ?? now(),
+        ]);
+
+        $this->subscriptionEvents()->create([
+            'subscription_plan_id' => $plan->id,
+            'event_type' => 'default_plan_assigned',
+            'status' => 'active',
+            'amount' => (float) ($plan->price_monthly ?? 0),
+            'currency' => $plan->currency,
+            'occurred_at' => $subscription->started_at ?? now(),
+            'note' => 'Plano padrão atribuído automaticamente.',
+            'metadata' => [
+                'source' => 'automatic_default_assignment',
+                'plan_code' => $plan->code,
+            ],
+        ]);
+    }
+
+    public function subscriptionPlan(): ?SubscriptionPlan
+    {
+        $this->loadMissing('subscription.plan');
+
+        return $this->subscription?->plan;
+    }
+
+    public function planCode(): string
+    {
+        return $this->subscriptionPlan()?->code ?? 'gratis';
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    public function planFeatures(): array
+    {
+        $features = $this->subscriptionPlan()?->features;
+
+        if (! is_array($features) || empty($features)) {
+            return self::defaultPlanFeatures();
+        }
+
+        return $features;
+    }
+
+    public function hasFeature(string $feature): bool
+    {
+        $features = $this->planFeatures();
+
+        return array_key_exists($feature, $features)
+            ? (bool) $features[$feature]
+            : true;
     }
 }

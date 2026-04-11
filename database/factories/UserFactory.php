@@ -27,8 +27,11 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            'subscribed_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'is_super_admin' => false,
+            'admin_domain' => null,
         ];
     }
 
@@ -39,6 +42,14 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function superAdmin(?string $domain = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_super_admin' => true,
+            'admin_domain' => $domain ?? config('admin.domain'),
         ]);
     }
 }

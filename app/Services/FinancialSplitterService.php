@@ -8,6 +8,96 @@ use Carbon\Carbon;
 
 class FinancialSplitterService
 {
+    public function getSavingsWallet(User $user): array
+    {
+        $totalDeposited = (float) $user->savingsTransfers()->sum('amount');
+        $totalToGoals = (float) $user->goalTransfers()->where('type', 'to_goal')->sum('amount');
+        $totalToSavings = (float) $user->goalTransfers()->where('type', 'to_savings')->sum('amount');
+
+        $totalInGoals = round($totalToGoals - $totalToSavings, 2);
+        $availableBalance = round($totalDeposited - $totalInGoals, 2);
+
+        return [
+            'total_deposited' => $totalDeposited,
+            'total_in_goals' => $totalInGoals,
+            'available_balance' => $availableBalance,
+        ];
+    }
+
+    public function getUnifiedSavingsHistory(User $user, int $limit = 20): array
+    {
+        $savingsHistory = $user->savingsTransfers()
+            ->orderByDesc('transferred_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(function ($transfer) {
+                return [
+                    'id' => $transfer->id,
+                    'entry_type' => 'savings_deposit',
+                    'direction' => 'deposit',
+                    'title' => 'Depósito na Poupança',
+                    'goal_name' => null,
+                    'amount' => (float) $transfer->amount,
+                    'note' => $transfer->note,
+                    'transferred_at' => $transfer->transferred_at?->format('Y-m-d'),
+                    'sort_key' => $this->buildSortKey(
+                        $transfer->transferred_at?->format('Y-m-d'),
+                        $transfer->created_at?->format('H:i:s.u'),
+                        $transfer->id
+                    ),
+                ];
+            });
+
+        $goalTransferHistory = $user->goalTransfers()
+            ->with('goal:id,name')
+            ->orderByDesc('transferred_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(function ($transfer) {
+                return [
+                    'id' => $transfer->id,
+                    'entry_type' => 'goal_transfer',
+                    'direction' => $transfer->type,
+                    'title' => $transfer->type === 'to_goal' ? 'Poupança → Meta' : 'Meta → Poupança',
+                    'goal_name' => $transfer->goal?->name,
+                    'amount' => (float) $transfer->amount,
+                    'note' => $transfer->note,
+                    'transferred_at' => $transfer->transferred_at?->format('Y-m-d'),
+                    'sort_key' => $this->buildSortKey(
+                        $transfer->transferred_at?->format('Y-m-d'),
+                        $transfer->created_at?->format('H:i:s.u'),
+                        $transfer->id
+                    ),
+                ];
+            });
+
+        return $savingsHistory
+            ->concat($goalTransferHistory)
+            ->sortByDesc('sort_key')
+            ->take($limit)
+            ->values()
+            ->map(function (array $entry) {
+                unset($entry['sort_key']);
+
+                return $entry;
+            })
+            ->all();
+    }
+
+    public function getSavingsTransferredForMonth(User $user, ?Carbon $month = null): float
+    {
+        $month = $month ?? Carbon::now();
+
+        return (float) $user->savingsTransfers()
+            ->whereBetween('transferred_at', [
+                $month->copy()->startOfMonth(),
+                $month->copy()->endOfMonth(),
+            ])
+            ->sum('amount');
+    }
+
     public function getIncomeForMonth(User $user, ?Carbon $month = null): float
     {
         $month = $month ?? Carbon::now();
@@ -82,36 +172,34 @@ class FinancialSplitterService
         $spent = $this->getMonthlyExpensesByBucket($user, $month);
 
         $savingsAllocated = $allocations['economia']['valor'];
-        $savingsTransferred = (float) $user->savingsTransfers()
-            ->whereBetween('transferred_at', [
-                $month->copy()->startOfMonth(),
-                $month->copy()->endOfMonth(),
-            ])
-            ->sum('amount');
+        $savingsTransferred = $this->getSavingsTransferredForMonth($user, $month);
 
         return [
             'necessidades' => [
-                'alocado'  => $allocations['necessidades']['valor'],
-                'gasto'    => $spent['necessidades'],
+                'alocado' => $allocations['necessidades']['valor'],
+                'gasto' => $spent['necessidades'],
                 'restante' => $allocations['necessidades']['valor'] - $spent['necessidades'],
             ],
             'desejos' => [
-                'alocado'  => $allocations['desejos']['valor'],
-                'gasto'    => $spent['desejos'],
+                'alocado' => $allocations['desejos']['valor'],
+                'gasto' => $spent['desejos'],
                 'restante' => $allocations['desejos']['valor'] - $spent['desejos'],
             ],
             'economia' => [
-                'alocado'     => $savingsAllocated,
+                'alocado' => $savingsAllocated,
                 'transferido' => $savingsTransferred,
-                'restante'    => round($savingsAllocated - $savingsTransferred, 2),
+                'restante' => round($savingsAllocated - $savingsTransferred, 2),
             ],
         ];
     }
 
-    public function calculateGoalEta(User $user, float $remainingAmount, float $goalSavingsPct = 100): ?array
-    {
-        $allocations = $this->getBucketAllocations($user);
-        $totalMonthlySavings = $allocations['economia']['valor'];
+    public function calculateGoalEta(
+        User $user,
+        float $remainingAmount,
+        float $goalSavingsPct = 100,
+        ?float $monthlySavingsTotal = null
+    ): ?array {
+        $totalMonthlySavings = $monthlySavingsTotal ?? $this->getBucketAllocations($user)['economia']['valor'];
         $perGoalSavings = round($totalMonthlySavings * $goalSavingsPct / 100, 2);
 
         if ($perGoalSavings <= 0) {
@@ -130,10 +218,14 @@ class FinancialSplitterService
         ];
     }
 
-    public function calculateFastTrack(User $user, float $remainingAmount, float $redirectAmount, float $goalSavingsPct = 100): ?array
-    {
-        $allocations = $this->getBucketAllocations($user);
-        $totalMonthlySavings = $allocations['economia']['valor'];
+    public function calculateFastTrack(
+        User $user,
+        float $remainingAmount,
+        float $redirectAmount,
+        float $goalSavingsPct = 100,
+        ?float $monthlySavingsTotal = null
+    ): ?array {
+        $totalMonthlySavings = $monthlySavingsTotal ?? $this->getBucketAllocations($user)['economia']['valor'];
         $perGoalSavings = round($totalMonthlySavings * $goalSavingsPct / 100, 2);
         $newSavings = $perGoalSavings + $redirectAmount;
 
@@ -157,10 +249,10 @@ class FinancialSplitterService
     {
         $week = $week ?? Carbon::now();
         $startOfWeek = $week->copy()->startOfWeek(); // Monday
-        $endOfWeek   = $week->copy()->endOfWeek();   // Sunday
+        $endOfWeek = $week->copy()->endOfWeek();   // Sunday
 
-        $allocations     = $this->getBucketAllocations($user);
-        $monthlyWants    = $allocations['desejos']['valor'];
+        $allocations = $this->getBucketAllocations($user);
+        $monthlyWants = $allocations['desejos']['valor'];
         $weeklyAllowance = round($monthlyWants / 4.33, 2);
 
         // Only count one-time wants expenses; recurring ones are fixed commitments
@@ -171,12 +263,12 @@ class FinancialSplitterService
             ->sum('amount');
 
         return [
-            'allowance'  => $weeklyAllowance,
-            'spent'      => $spent,
-            'remaining'  => round($weeklyAllowance - $spent, 2),
-            'pct_spent'  => $weeklyAllowance > 0 ? min(100, round(($spent / $weeklyAllowance) * 100)) : 0,
+            'allowance' => $weeklyAllowance,
+            'spent' => $spent,
+            'remaining' => round($weeklyAllowance - $spent, 2),
+            'pct_spent' => $weeklyAllowance > 0 ? min(100, round(($spent / $weeklyAllowance) * 100)) : 0,
             'week_start' => $startOfWeek->format('d/m'),
-            'week_end'   => $endOfWeek->format('d/m'),
+            'week_end' => $endOfWeek->format('d/m'),
         ];
     }
 
@@ -203,5 +295,13 @@ class FinancialSplitterService
             'wants_pct' => 30,
             'savings_pct' => 20,
         ]);
+    }
+
+    private function buildSortKey(?string $date, ?string $time, int $id): string
+    {
+        $safeDate = $date ?? '0000-00-00';
+        $safeTime = $time ?? '00:00:00.000000';
+
+        return sprintf('%s %s %020d', $safeDate, $safeTime, $id);
     }
 }

@@ -2,8 +2,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import MonthSelector from '@/Components/MonthSelector';
 import { Head, useForm } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { getStaggerMotionProps, staggerItem } from '@/lib/motion';
+import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
 
 const fmt  = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' MT';
 const fmtN = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -138,6 +141,7 @@ function ExpenseForm({ onClose, expense = null, currentMonth }) {
 // ── Transaction row ───────────────────────────────────────────────────────────
 function ExpenseRow({ expense, onEdit, onDelete }) {
     const [hovered, setHovered] = useState(false);
+    const { reduceMotion } = useMotionPreference();
     const initial  = (expense.description || '?').charAt(0).toUpperCase();
     const isNeeds  = expense.bucket === 'necessidades';
     const dateStr  = expense.is_recurring
@@ -145,10 +149,12 @@ function ExpenseRow({ expense, onEdit, onDelete }) {
         : new Date(expense.spent_at).toLocaleDateString('pt-BR');
 
     return (
-        <div
+        <motion.div
             className={`flex items-center gap-3 px-4 py-2.5 border-b border-black/5 last:border-0 transition-colors ${hovered ? 'bg-gray-50' : ''}`}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
+            whileHover={reduceMotion ? undefined : { y: -1 }}
+            transition={{ duration: reduceMotion ? 0 : 0.15 }}
         >
             {/* Icon */}
             <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[13px] font-bold"
@@ -199,7 +205,7 @@ function ExpenseRow({ expense, onEdit, onDelete }) {
                 <span className="text-gray-300">·</span>
                 <button onClick={() => onDelete(expense.id)} className="text-red-500">Excluir</button>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
@@ -234,6 +240,8 @@ export default function Index({ expenses, recurringExpenses, monthTotal, byBucke
     const [showForm, setShowForm] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
     const { delete: destroy } = useForm();
+    const { reduceMotion } = useMotionPreference();
+    const staggerProps = getStaggerMotionProps(reduceMotion);
 
     function handleDelete(id) {
         if (confirm('Remover esta despesa?')) destroy(route('expenses.destroy', id));
@@ -263,10 +271,15 @@ export default function Index({ expenses, recurringExpenses, monthTotal, byBucke
         >
             <Head title="Despesas" />
 
-            <div className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10">
+            <motion.div
+                className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10"
+                variants={staggerProps.variants}
+                initial={staggerProps.initial}
+                animate={staggerProps.animate}
+            >
 
                 {/* Summary + chart */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                     {/* Metric cards */}
                     {[
                         { lbl: 'Total Gasto',   val: monthTotal,            clr: 'text-red-500',   prefix: '- ' },
@@ -278,11 +291,11 @@ export default function Index({ expenses, recurringExpenses, monthTotal, byBucke
                             <p className={`font-mono text-lg font-bold ${d.clr}`}>{d.prefix}{fmtN(d.val)}</p>
                         </div>
                     ))}
-                </div>
+                </motion.div>
 
                 {/* Donut breakdown (only if we have data) */}
                 {pieData.length > 0 && (
-                    <div className="bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-4">
+                    <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-4">
                         <p className="text-[13px] font-semibold text-gray-900 mb-4">Distribuição por Categoria</p>
                         <div className="flex flex-col sm:flex-row items-center gap-6">
                             <ResponsiveContainer width={160} height={160}>
@@ -316,7 +329,7 @@ export default function Index({ expenses, recurringExpenses, monthTotal, byBucke
                                 })}
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* Form modal */}
@@ -326,19 +339,23 @@ export default function Index({ expenses, recurringExpenses, monthTotal, byBucke
 
                 {/* Lists */}
                 {recurringExpenses?.length > 0 && (
-                    <ExpenseSection title="Despesas Recorrentes Ativas" items={recurringExpenses} onEdit={handleEdit} onDelete={handleDelete} />
+                    <motion.div variants={staggerItem}>
+                        <ExpenseSection title="Despesas Recorrentes Ativas" items={recurringExpenses} onEdit={handleEdit} onDelete={handleDelete} />
+                    </motion.div>
                 )}
                 {oneTimeItems.length > 0 && (
-                    <ExpenseSection
-                        title={recurringExpenses?.length > 0 ? 'Despesas Avulsas' : null}
-                        items={oneTimeItems}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                    />
+                    <motion.div variants={staggerItem}>
+                        <ExpenseSection
+                            title={recurringExpenses?.length > 0 ? 'Despesas Avulsas' : null}
+                            items={oneTimeItems}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
+                    </motion.div>
                 )}
 
                 {allItems.length === 0 && (
-                    <div className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-14 text-center">
+                    <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-14 text-center">
                         <div className="w-12 h-12 rounded-xl bg-black/4 flex items-center justify-center mx-auto mb-4">
                             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#9CA3AF">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
@@ -347,17 +364,21 @@ export default function Index({ expenses, recurringExpenses, monthTotal, byBucke
                         <p className="text-[14px] font-medium text-gray-600 mb-1">Nenhuma despesa neste mês</p>
                         <p className="text-[12.5px] text-gray-400 mb-5">Registre suas despesas para acompanhar os gastos</p>
                         <button onClick={openNew} className="btn-primary text-[13px]">Registrar despesa</button>
-                    </div>
+                    </motion.div>
                 )}
-            </div>
+            </motion.div>
 
             {/* FAB */}
-            <button onClick={openNew}
-                className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 z-30 hover:scale-105 active:scale-95 transition-transform">
+            <motion.button
+                onClick={openNew}
+                className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 z-30 hover:scale-105 active:scale-95 transition-transform"
+                whileHover={reduceMotion ? undefined : { scale: 1.05 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.93 }}
+            >
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#fff">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-            </button>
+            </motion.button>
         </AuthenticatedLayout>
     );
 }

@@ -44,6 +44,8 @@ class RegisteredUserController extends Controller
             'subscribed_at' => now(),
         ]);
 
+        $user->ensureDefaultSubscription();
+
         event(new Registered($user));
 
         Auth::login($user);

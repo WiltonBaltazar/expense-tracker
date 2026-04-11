@@ -3,7 +3,10 @@ import Modal from '@/Components/Modal';
 import MonthSelector from '@/Components/MonthSelector';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { getStaggerMotionProps, staggerItem } from '@/lib/motion';
+import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
 
 const fmt  = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' MT';
 const fmtN = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -16,6 +19,9 @@ const CATEGORIES = [
     'Empregada','Mercado','Beleza','Presentes','Viagem',
     'Impostos','Taxas Bancarias','Outros',
 ];
+
+const SOURCE_LABELS = { salario: 'Salário', freelance: 'Freelance', renda_passiva: 'Renda Passiva', outro: 'Outro' };
+const FREQ_LABELS   = { semanal: 'Semanal', quinzenal: 'Quinzenal', mensal: 'Mensal', bimestral: 'Bimestral', trimestral: 'Trimestral', semestral: 'Semestral', anual: 'Anual', unico: 'Único' };
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[13px] outline-none focus:border-[#00B679]/50 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors';
 
@@ -95,6 +101,136 @@ function QuickExpenseModal({ show, onClose }) {
                         <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
                         <button type="submit" disabled={processing} className="btn-primary text-[13px]">
                             {processing ? 'Salvando...' : 'Salvar Despesa'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+    );
+}
+
+// ── Quick Income Modal ───────────────────────────────────────────────────────
+function QuickIncomeModal({ show, onClose }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        source: 'salario',
+        amount: '',
+        frequency: 'mensal',
+        description: '',
+        received_at: new Date().toISOString().slice(0, 10),
+    });
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        post(route('incomes.store'), {
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+        });
+    }
+
+    return (
+        <Modal show={show} onClose={onClose} maxWidth="lg">
+            <div className="bg-white rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-[16px] font-bold text-gray-900">Nova Renda</h3>
+                    <CloseBtn onClose={onClose} />
+                </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Fonte</label>
+                            <select value={data.source} onChange={e => setData('source', e.target.value)} className={inputCls}>
+                                {Object.entries(SOURCE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                            </select>
+                            {errors.source && <p className="text-[11px] text-red-500 mt-1">{errors.source}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Valor (MT)</label>
+                            <input type="number" step="0.01" value={data.amount} onChange={e => setData('amount', e.target.value)} className={inputCls} placeholder="0.00" />
+                            {errors.amount && <p className="text-[11px] text-red-500 mt-1">{errors.amount}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Frequência</label>
+                            <select value={data.frequency} onChange={e => setData('frequency', e.target.value)} className={inputCls}>
+                                {Object.entries(FREQ_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                            </select>
+                            {errors.frequency && <p className="text-[11px] text-red-500 mt-1">{errors.frequency}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Data</label>
+                            <input type="date" value={data.received_at} onChange={e => setData('received_at', e.target.value)} className={inputCls} />
+                            {errors.received_at && <p className="text-[11px] text-red-500 mt-1">{errors.received_at}</p>}
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Descrição</label>
+                            <input type="text" value={data.description} onChange={e => setData('description', e.target.value)} className={inputCls} placeholder="Opcional" />
+                        </div>
+                    </div>
+                    <div className="mt-5 flex justify-end gap-2">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                            {processing ? 'Salvando...' : 'Salvar Renda'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+    );
+}
+
+// ── Quick Goal Modal ─────────────────────────────────────────────────────────
+function QuickGoalModal({ show, onClose }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        target_amount: '',
+        current_amount: '0',
+        deadline: '',
+    });
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        post(route('goals.store'), {
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+        });
+    }
+
+    return (
+        <Modal show={show} onClose={onClose} maxWidth="md">
+            <div className="bg-white rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-[16px] font-bold text-gray-900">Nova Meta</h3>
+                    <CloseBtn onClose={onClose} />
+                </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="sm:col-span-2">
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nome da Meta</label>
+                            <input type="text" value={data.name} onChange={e => setData('name', e.target.value)} className={inputCls} placeholder="Ex: Viagem, Reserva..." />
+                            {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Valor Alvo (MT)</label>
+                            <input type="number" step="0.01" value={data.target_amount} onChange={e => setData('target_amount', e.target.value)} className={inputCls} placeholder="0.00" />
+                            {errors.target_amount && <p className="text-[11px] text-red-500 mt-1">{errors.target_amount}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Valor Atual (MT)</label>
+                            <input type="number" step="0.01" value={data.current_amount} onChange={e => setData('current_amount', e.target.value)} className={inputCls} placeholder="0.00" />
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Prazo (opcional)</label>
+                            <input type="date" value={data.deadline} onChange={e => setData('deadline', e.target.value)} className={inputCls} />
+                            {errors.deadline && <p className="text-[11px] text-red-500 mt-1">{errors.deadline}</p>}
+                        </div>
+                    </div>
+                    <div className="mt-5 flex justify-end gap-2">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                            {processing ? 'Salvando...' : 'Salvar Meta'}
                         </button>
                     </div>
                 </form>
@@ -433,7 +569,12 @@ function ExpenseItem({ expense, isLast }) {
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({ allocations, bucketStatus, goals, recentExpenses, monthIncome, weeklyBudget, savingsTransfers, currentMonth }) {
     const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [showIncomeModal, setShowIncomeModal] = useState(false);
+    const [showGoalModal, setShowGoalModal] = useState(false);
     const [showSavingsModal, setShowSavingsModal] = useState(false);
+    const [fabOpen, setFabOpen] = useState(false);
+    const { reduceMotion } = useMotionPreference();
+    const staggerProps = getStaggerMotionProps(reduceMotion);
 
     return (
         <AuthenticatedLayout
@@ -452,25 +593,40 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
             <Head title="Painel" />
 
             <QuickExpenseModal show={showExpenseModal} onClose={() => setShowExpenseModal(false)} />
+            <QuickIncomeModal show={showIncomeModal} onClose={() => setShowIncomeModal(false)} />
+            <QuickGoalModal show={showGoalModal} onClose={() => setShowGoalModal(false)} />
             <SavingsTransferModal show={showSavingsModal} onClose={() => setShowSavingsModal(false)} />
 
-            <div className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10 space-y-4">
+            <motion.div
+                className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10 space-y-4"
+                variants={staggerProps.variants}
+                initial={staggerProps.initial}
+                animate={staggerProps.animate}
+            >
 
-                <SummaryHeader allocations={allocations} bucketStatus={bucketStatus} monthIncome={monthIncome} />
+                <motion.div variants={staggerItem}>
+                    <SummaryHeader allocations={allocations} bucketStatus={bucketStatus} monthIncome={monthIncome} />
+                </motion.div>
 
-                <BucketPanel bucketStatus={bucketStatus} />
+                <motion.div variants={staggerItem}>
+                    <BucketPanel bucketStatus={bucketStatus} />
+                </motion.div>
 
-                <SavingsCard
-                    economia={bucketStatus.economia}
-                    savingsTransfers={savingsTransfers}
-                    onAddSaving={() => setShowSavingsModal(true)}
-                />
+                <motion.div variants={staggerItem}>
+                    <SavingsCard
+                        economia={bucketStatus.economia}
+                        savingsTransfers={savingsTransfers}
+                        onAddSaving={() => setShowSavingsModal(true)}
+                    />
+                </motion.div>
 
-                <WeeklyCard weeklyBudget={weeklyBudget} />
+                <motion.div variants={staggerItem}>
+                    <WeeklyCard weeklyBudget={weeklyBudget} />
+                </motion.div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                    <div className="bg-white rounded-xl border border-black/7 shadow-sm">
+                    <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={{ duration: reduceMotion ? 0 : 0.2 }} className="bg-white rounded-xl border border-black/7 shadow-sm">
                         <div className="px-5 py-3.5 border-b border-black/6 flex items-center justify-between">
                             <span className="text-[13px] font-semibold text-gray-900">Metas</span>
                             <Link href={route('goals.index')} className="text-[12px] font-semibold text-[#00B679] hover:underline">Ver todas</Link>
@@ -486,9 +642,9 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
                                 )
                             }
                         </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="bg-white rounded-xl border border-black/7 shadow-sm">
+                    <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={{ duration: reduceMotion ? 0 : 0.2 }} className="bg-white rounded-xl border border-black/7 shadow-sm">
                         <div className="px-5 py-3.5 border-b border-black/6 flex items-center justify-between">
                             <span className="text-[13px] font-semibold text-gray-900">Despesas Recentes</span>
                             <Link href={route('expenses.index')} className="text-[12px] font-semibold text-[#00B679] hover:underline">Ver todas</Link>
@@ -502,21 +658,81 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
                                 </div>
                             )
                         }
-                    </div>
+                    </motion.div>
 
-                </div>
+                </motion.div>
+            </motion.div>
+
+            {/* FAB Speed Dial */}
+            <div className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 z-30 flex flex-col items-end gap-2">
+                <AnimatePresence>
+                    {fabOpen && (
+                        <motion.div
+                            className="flex flex-col items-end gap-2"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                        >
+                            <motion.button
+                            onClick={() => { setShowGoalModal(true); setFabOpen(false); }}
+                            className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
+                            whileHover={reduceMotion ? undefined : { x: -2 }}
+                            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                        >
+                            <span className="text-[12px] font-semibold text-gray-700">Nova Meta</span>
+                            <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22" /></svg>
+                            </span>
+                            </motion.button>
+
+                            <motion.button
+                            onClick={() => { setShowIncomeModal(true); setFabOpen(false); }}
+                            className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
+                            whileHover={reduceMotion ? undefined : { x: -2 }}
+                            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                        >
+                            <span className="text-[12px] font-semibold text-gray-700">Nova Renda</span>
+                            <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0" /></svg>
+                            </span>
+                            </motion.button>
+
+                            <motion.button
+                            onClick={() => { setShowExpenseModal(true); setFabOpen(false); }}
+                            className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
+                            whileHover={reduceMotion ? undefined : { x: -2 }}
+                            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                        >
+                            <span className="text-[12px] font-semibold text-gray-700">Nova Despesa</span>
+                            <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5h18M7.5 15h1.5" /></svg>
+                            </span>
+                            </motion.button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <motion.button
+                    onClick={() => setFabOpen((v) => !v)}
+                    title={fabOpen ? 'Fechar ações rápidas' : 'Ações rápidas'}
+                    className="w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 hover:scale-105 active:scale-95 transition-transform"
+                    whileHover={reduceMotion ? undefined : { scale: 1.05 }}
+                    whileTap={reduceMotion ? undefined : { scale: 0.93 }}
+                >
+                    <svg
+                        width="22"
+                        height="22"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2.5}
+                        stroke="#fff"
+                        className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                </motion.button>
             </div>
-
-            {/* FAB — visible on all screen sizes on dashboard */}
-            <button
-                onClick={() => setShowExpenseModal(true)}
-                title="Nova Despesa"
-                className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 z-30 hover:scale-105 active:scale-95 transition-transform"
-            >
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#fff">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-            </button>
         </AuthenticatedLayout>
     );
 }
