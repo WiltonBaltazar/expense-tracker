@@ -1,7 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
+import { fmtDateTime } from '@/lib/date';
 
 const BUCKETS = [
     { key: 'needs_pct',   label: 'Necessidades', desc: 'Moradia, alimentação, transporte, saúde', color: '#2563EB' },
@@ -10,9 +11,9 @@ const BUCKETS = [
 ];
 
 const TABS = [
-    { key: 'allocation', label: 'Alocação' },
+    { key: 'allocation',    label: 'Alocação' },
     { key: 'accessibility', label: 'Acessibilidade' },
-    { key: 'subscription', label: 'Subscrição' },
+    { key: 'subscription',  label: 'Subscrição' },
 ];
 
 const currency = (value) => Number(value || 0).toLocaleString('pt-BR', {
@@ -20,7 +21,34 @@ const currency = (value) => Number(value || 0).toLocaleString('pt-BR', {
     maximumFractionDigits: 2,
 });
 
+function FlashBanner({ flash }) {
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        if (flash?.success || flash?.error) {
+            setVisible(true);
+            const t = setTimeout(() => setVisible(false), 5000);
+            return () => clearTimeout(t);
+        }
+    }, [flash]);
+
+    if (!visible || (!flash?.success && !flash?.error)) return null;
+
+    const isSuccess = Boolean(flash.success);
+    return (
+        <div className={`mb-4 flex items-start gap-3 rounded-xl px-4 py-3 text-[13px] font-medium border ${
+            isSuccess
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-red-50 border-red-200 text-red-800'
+        }`}>
+            <span className="mt-px flex-shrink-0 text-base">{isSuccess ? '✓' : '✕'}</span>
+            <span>{flash.success || flash.error}</span>
+        </div>
+    );
+}
+
 export default function Edit({ setting, subscription, subscriptionHistory = [] }) {
+    const { flash } = usePage().props;
     const [activeTab, setActiveTab] = useState('allocation');
     const { reduceMotion, setReduceMotion } = useMotionPreference();
     const { post: renewSubscription, processing: renewing } = useForm({});
@@ -32,6 +60,9 @@ export default function Edit({ setting, subscription, subscriptionHistory = [] }
 
     const total   = Number(data.needs_pct) + Number(data.wants_pct) + Number(data.savings_pct);
     const isValid = Math.abs(total - 100) < 0.01;
+
+    const canRenew       = subscription?.can_renew ?? true;
+    const daysUntilExpiry = subscription?.days_until_expiry ?? null;
 
     function handleSubmit(e) {
         e.preventDefault();
@@ -45,6 +76,9 @@ export default function Edit({ setting, subscription, subscriptionHistory = [] }
             <Head title="Ajustes" />
 
             <div className="max-w-[580px] mx-auto px-5 sm:px-6 lg:px-8 py-6 pb-12">
+
+                <FlashBanner flash={flash} />
+
                 <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl border border-black/7 bg-white p-1">
                     {TABS.map((tab) => (
                         <button
@@ -198,8 +232,16 @@ export default function Edit({ setting, subscription, subscriptionHistory = [] }
                                 <div className="rounded-lg border border-black/10 bg-gray-50 px-4 py-3 sm:col-span-2">
                                     <p className="text-[11px] uppercase tracking-wide text-gray-400">Próxima Renovação</p>
                                     <p className="text-[14px] font-semibold text-gray-900">
-                                        {subscription?.renews_at ? new Date(subscription.renews_at).toLocaleString() : 'Ainda não definida'}
+                                        {subscription?.renews_at ? fmtDateTime(subscription.renews_at) : 'Ainda não definida'}
                                     </p>
+                                    {daysUntilExpiry !== null && (
+                                        <p className={`text-[11px] mt-1 font-medium ${daysUntilExpiry <= 5 ? 'text-amber-600' : 'text-gray-400'}`}>
+                                            {daysUntilExpiry <= 5
+                                                ? `Vence em ${daysUntilExpiry} dia(s) — renovação disponível`
+                                                : `Faltam ${daysUntilExpiry} dias para o vencimento`
+                                            }
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -217,15 +259,25 @@ export default function Edit({ setting, subscription, subscriptionHistory = [] }
                                 </div>
                             </div>
 
-                            <div className="mt-5 flex justify-end">
-                                <button
-                                    type="button"
-                                    disabled={renewing}
-                                    onClick={() => renewSubscription(route('settings.subscription.renew'), { preserveScroll: true })}
-                                    className="inline-flex items-center rounded-lg bg-[#00B679] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-[#009a66] disabled:opacity-60"
-                                >
-                                    {renewing ? 'Renovando...' : 'Renovar Subscrição'}
-                                </button>
+                            <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                {!canRenew && daysUntilExpiry !== null && (
+                                    <p className="text-[12px] text-gray-500">
+                                        Renovação disponível nos últimos 5 dias do plano.
+                                    </p>
+                                )}
+                                <div className="sm:ml-auto">
+                                    <button
+                                        type="button"
+                                        disabled={renewing || !canRenew}
+                                        title={!canRenew && daysUntilExpiry !== null
+                                            ? `Disponível em ${daysUntilExpiry - 5} dias`
+                                            : undefined}
+                                        onClick={() => renewSubscription(route('settings.subscription.renew'), { preserveScroll: true })}
+                                        className="inline-flex items-center rounded-lg bg-[#00B679] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-[#009a66] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {renewing ? 'Renovando...' : 'Renovar Subscrição'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -241,7 +293,7 @@ export default function Edit({ setting, subscription, subscriptionHistory = [] }
                                         <div className="flex flex-wrap items-center justify-between gap-2">
                                             <p className="text-[13px] font-semibold text-gray-900">{event.event_label}</p>
                                             <span className="text-[11px] text-gray-500">
-                                                {event.occurred_at ? new Date(event.occurred_at).toLocaleString() : '-'}
+                                                {fmtDateTime(event.occurred_at)}
                                             </span>
                                         </div>
                                         <p className="text-[12px] text-gray-600 mt-1">

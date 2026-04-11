@@ -1,6 +1,7 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { fmtDateTime } from '@/lib/date';
 import {
     Area,
     AreaChart,
@@ -204,7 +205,7 @@ export default function Analytics({
                 </motion.section>
 
                 <motion.section variants={staggerItem}>
-                    <p className="text-xs text-slate-500">Atualizado em {new Date(generatedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500">Atualizado em {fmtDateTime(generatedAt)}</p>
                 </motion.section>
             </motion.div>
         </AdminLayout>

@@ -2,6 +2,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { getStaggerMotionProps, staggerItem } from '@/lib/motion';
+import { fmtDateTime } from '@/lib/date';
 import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
 
 const number = (value) => Number(value || 0).toLocaleString('pt-BR');
@@ -132,7 +133,7 @@ export default function Users({
                 </motion.section>
 
                 <motion.section variants={staggerItem}>
-                    <p className="text-xs text-slate-500">Atualizado em {new Date(generatedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500">Atualizado em {fmtDateTime(generatedAt)}</p>
                 </motion.section>
             </motion.div>
         </AdminLayout>

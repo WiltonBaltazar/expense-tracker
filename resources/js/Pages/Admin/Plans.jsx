@@ -2,6 +2,7 @@ import Modal from '@/Components/Modal';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { fmtDateTime } from '@/lib/date';
 import { useMemo, useState } from 'react';
 import { getStaggerMotionProps, staggerItem } from '@/lib/motion';
 import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
@@ -275,7 +276,7 @@ export default function Plans({ adminDomain, generatedAt, featureCatalog, durati
                 </motion.section>
 
                 <motion.section variants={staggerItem}>
-                    <p className="text-xs text-slate-500">Atualizado em {new Date(generatedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500">Atualizado em {fmtDateTime(generatedAt)}</p>
                 </motion.section>
             </motion.div>
 

@@ -52,6 +52,10 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'flash' => [
+                'success' => session('success'),
+                'error'   => session('error'),
+            ],
             'auth' => [
                 'user' => $user,
                 'subscribed_at' => $user?->subscribed_at?->toISOString(),

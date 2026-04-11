@@ -1,6 +1,7 @@
 import Modal from '@/Components/Modal';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { fmtDateTime } from '@/lib/date';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { getStaggerMotionProps, staggerItem } from '@/lib/motion';
@@ -105,7 +106,7 @@ export default function AdminUsers({ adminDomain, generatedAt, adminUsers, admin
                 </motion.section>
 
                 <motion.section variants={staggerItem}>
-                    <p className="text-xs text-slate-500">Atualizado em {new Date(generatedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500">Atualizado em {fmtDateTime(generatedAt)}</p>
                 </motion.section>
             </motion.div>
 

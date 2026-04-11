@@ -1,6 +1,7 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { fmtDateTime } from '@/lib/date';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getStaggerMotionProps, staggerItem } from '@/lib/motion';
 import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
@@ -177,7 +178,7 @@ export default function Subscriptions({
                 </motion.section>
 
                 <motion.section variants={staggerItem}>
-                    <p className="text-xs text-slate-500">Atualizado em {new Date(generatedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500">Atualizado em {fmtDateTime(generatedAt)}</p>
                 </motion.section>
             </motion.div>
         </AdminLayout>

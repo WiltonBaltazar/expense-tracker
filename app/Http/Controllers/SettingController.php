@@ -61,12 +61,23 @@ class SettingController extends Controller
             ->values()
             ->all();
 
+        $renewsAt = $user->subscription?->renews_at;
+        $daysUntilExpiry = null;
+        $canRenew = true;
+
+        if ($renewsAt instanceof Carbon && $renewsAt->isFuture()) {
+            $daysUntilExpiry = (int) ceil($renewsAt->diffInSeconds(now()) / 86400);
+            $canRenew = $daysUntilExpiry <= 5;
+        }
+
         return Inertia::render('Settings/Edit', [
             'setting' => $setting,
             'subscription' => [
                 'status' => $user->subscription?->status ?? 'active',
                 'started_at' => $user->subscription?->started_at?->toIso8601String(),
-                'renews_at' => $user->subscription?->renews_at?->toIso8601String(),
+                'renews_at' => $renewsAt?->toIso8601String(),
+                'can_renew' => $canRenew,
+                'days_until_expiry' => $daysUntilExpiry,
                 'plan' => [
                     'code' => $plan?->code ?? 'gratis',
                     'name' => $plan?->name ?? 'Gratis',
@@ -118,22 +129,43 @@ class SettingController extends Controller
             return redirect()->back()->with('error', 'Não foi possível renovar a subscrição agora.');
         }
 
+        // Gate: only allow renewal within the last 5 days of the plan
+        $currentRenewsAt = $subscription->renews_at;
+        $remainingDays = 0;
+
+        if ($currentRenewsAt instanceof Carbon && $currentRenewsAt->isFuture()) {
+            $remainingDays = (int) ceil($currentRenewsAt->diffInSeconds(now()) / 86400);
+
+            if ($remainingDays > 5) {
+                return redirect()->back()->with(
+                    'error',
+                    "A renovação só está disponível nos últimos 5 dias do plano. Faltam {$remainingDays} dias para o vencimento."
+                );
+            }
+        }
+
         $durationMonths = max(1, (int) ($plan->duration_months ?? 1));
-        $baseDate = $subscription->renews_at instanceof Carbon && $subscription->renews_at->isFuture()
-            ? $subscription->renews_at->copy()
+
+        // Base from current expiry so any remaining days carry over automatically
+        $baseDate = $currentRenewsAt instanceof Carbon && $currentRenewsAt->isFuture()
+            ? $currentRenewsAt->copy()
             : now()->startOfDay();
 
         $nextRenewal = $baseDate->copy()->addMonthsNoOverflow($durationMonths);
 
         $subscription->forceFill([
-            'status' => 'active',
+            'status'     => 'active',
             'started_at' => $subscription->started_at ?? now()->startOfDay(),
-            'renews_at' => $nextRenewal,
-            'ends_at' => null,
+            'renews_at'  => $nextRenewal,
+            'ends_at'    => null,
             'canceled_at' => null,
         ])->save();
 
         $cycleAmount = round((float) $plan->price_monthly * $durationMonths, 2);
+
+        $carryNote = $remainingDays > 0
+            ? " Os {$remainingDays} dia(s) restantes foram adicionados ao novo período."
+            : '';
 
         $user->subscriptionEvents()->create([
             'subscription_plan_id' => $plan->id,
@@ -141,11 +173,12 @@ class SettingController extends Controller
             'status' => 'active',
             'amount' => $cycleAmount > 0 ? $cycleAmount : null,
             'currency' => $plan->currency,
-            'note' => "Renovação feita pelo utilizador por {$durationMonths} mês(es).",
+            'note' => "Renovação feita pelo utilizador por {$durationMonths} mês(es).{$carryNote}",
             'occurred_at' => now(),
             'metadata' => [
                 'source' => 'self_service_renewal',
                 'duration_months' => $durationMonths,
+                'remaining_days_carried' => $remainingDays,
                 'renews_at' => $nextRenewal->toDateString(),
             ],
         ]);
