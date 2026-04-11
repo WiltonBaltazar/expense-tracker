@@ -143,13 +143,22 @@ class User extends Authenticatable
         return array_fill_keys($featureKeys, true);
     }
 
-    public function ensureDefaultSubscription(): void
+    public function ensureDefaultSubscription(?string $planCode = null): void
     {
         if ($this->subscription()->exists()) {
             return;
         }
 
-        $plan = SubscriptionPlan::query()
+        $plan = null;
+
+        if ($planCode) {
+            $plan = SubscriptionPlan::query()
+                ->where('code', $planCode)
+                ->where('is_active', true)
+                ->first();
+        }
+
+        $plan ??= SubscriptionPlan::query()
             ->where('code', 'gratis')
             ->first();
 

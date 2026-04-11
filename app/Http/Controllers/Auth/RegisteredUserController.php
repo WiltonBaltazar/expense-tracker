@@ -19,9 +19,31 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Register');
+        $selectedPlan = null;
+
+        if ($request->filled('plan')) {
+            $plan = \App\Models\SubscriptionPlan::query()
+                ->where('code', $request->input('plan'))
+                ->where('is_active', true)
+                ->first();
+
+            if ($plan) {
+                $selectedPlan = [
+                    'code'          => $plan->code,
+                    'name'          => $plan->name,
+                    'price_monthly' => (float) $plan->price_monthly,
+                    'currency'      => $plan->currency,
+                    'is_free'       => (bool) $plan->is_free,
+                    'duration_months' => (int) ($plan->duration_months ?? 1),
+                ];
+            }
+        }
+
+        return Inertia::render('Auth/Register', [
+            'selectedPlan' => $selectedPlan,
+        ]);
     }
 
     /**
@@ -32,19 +54,20 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password'  => ['required', 'confirmed', Rules\Password::defaults()],
+            'plan_code' => ['nullable', 'string', 'max:64'],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'password'      => Hash::make($request->password),
             'subscribed_at' => now(),
         ]);
 
-        $user->ensureDefaultSubscription();
+        $user->ensureDefaultSubscription($request->input('plan_code') ?: null);
 
         event(new Registered($user));
 

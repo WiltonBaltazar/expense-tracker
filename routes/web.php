@@ -18,11 +18,29 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    $plans = \App\Models\SubscriptionPlan::query()
+        ->where('is_active', true)
+        ->orderBy('price_monthly')
+        ->orderBy('duration_months')
+        ->get()
+        ->map(fn (\App\Models\SubscriptionPlan $plan) => [
+            'id'            => $plan->id,
+            'code'          => $plan->code,
+            'name'          => $plan->name,
+            'description'   => $plan->description,
+            'price_monthly' => (float) $plan->price_monthly,
+            'currency'      => $plan->currency,
+            'duration_months' => (int) ($plan->duration_months ?? 1),
+            'is_free'       => (bool) $plan->is_free,
+            'features'      => $plan->features ?? [],
+        ])
+        ->values()
+        ->all();
+
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
+        'canLogin'  => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        'plans'     => $plans,
     ]);
 });
 

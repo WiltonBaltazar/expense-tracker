@@ -4,10 +4,10 @@ import { getPageMotionProps } from '@/lib/motion';
 import { useMotionPreference } from '@/contexts/MotionPreferenceContext';
 
 const NAV_ITEMS = [
-    { name: 'painel',   label: 'Painel',    href: 'dashboard',     match: 'dashboard'   },
-    { name: 'rendas',   label: 'Rendas',    href: 'incomes.index', match: 'incomes.*'   },
-    { name: 'despesas', label: 'Despesas',  href: 'expenses.index',match: 'expenses.*'  },
-    { name: 'metas',    label: 'Metas',     href: 'goals.index',   match: 'goals.*'     },
+    { name: 'painel',   label: 'Painel',    href: 'dashboard',     match: 'dashboard', feature: 'dashboard'   },
+    { name: 'rendas',   label: 'Rendas',    href: 'incomes.index', match: 'incomes.*', feature: 'incomes'   },
+    { name: 'despesas', label: 'Despesas',  href: 'expenses.index',match: 'expenses.*', feature: 'expenses'  },
+    { name: 'metas',    label: 'Metas',     href: 'goals.index',   match: 'goals.*', feature: 'goals'     },
     { name: 'admin',    label: 'Admin',     href: 'admin.dashboard', match: 'admin.*'   },
     { name: 'ajustes',  label: 'Ajustes',   href: 'settings.edit', match: 'settings.*'  },
 ];
@@ -55,12 +55,23 @@ const LogoIcon = () => (
 export default function AuthenticatedLayout({ header, children }) {
     const page = usePage();
     const user = page.props.auth.user;
+    const features = page.props.auth?.subscription?.features ?? {};
     const { reduceMotion } = useMotionPreference();
     const initial = user.name.charAt(0).toUpperCase();
     const pageMotion = getPageMotionProps(reduceMotion);
-    const navItems = user?.is_super_admin
-        ? NAV_ITEMS
-        : NAV_ITEMS.filter((item) => item.name !== 'admin');
+    const hasFeature = (featureKey) => {
+        if (!featureKey) return true;
+        if (user?.is_super_admin) return true;
+        return features[featureKey] !== false;
+    };
+
+    const navItems = NAV_ITEMS.filter((item) => {
+        if (item.name === 'admin') {
+            return Boolean(user?.is_super_admin);
+        }
+
+        return hasFeature(item.feature);
+    });
 
     const isActiveRoute = (match) => {
         if (typeof route !== 'undefined') {

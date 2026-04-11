@@ -6,6 +6,20 @@ const LogoIcon = () => (
     </svg>
 );
 
+const CheckIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 13l4 4L19 7" />
+    </svg>
+);
+
+const featureLabels = {
+    dashboard:      'Dashboard financeiro completo',
+    incomes:        'Gestão de rendas',
+    expenses:       'Registo de despesas',
+    goals:          'Metas e objetivos financeiros',
+    savings_wallet: 'Carteira de poupança',
+};
+
 const features = [
     {
         icon: (
@@ -85,7 +99,6 @@ function MockDashboard() {
 
     return (
         <div className="bg-white rounded-2xl border border-black/8 shadow-2xl shadow-black/10 overflow-hidden max-w-sm w-full mx-auto">
-            {/* Header */}
             <div className="bg-[#00B679] px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
@@ -96,7 +109,6 @@ function MockDashboard() {
                 <span className="text-white/70 text-xs font-mono">Abr 2026</span>
             </div>
 
-            {/* Balance */}
             <div className="px-4 py-3 border-b border-black/6">
                 <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Renda do Mês</div>
                 <div className="font-mono text-xl font-bold text-gray-900">+ 20.000 MT</div>
@@ -110,7 +122,6 @@ function MockDashboard() {
                 </div>
             </div>
 
-            {/* Budget bars */}
             <div className="px-4 py-2.5 border-b border-black/6 space-y-2">
                 {bars.map(b => (
                     <div key={b.label}>
@@ -128,7 +139,6 @@ function MockDashboard() {
                 ))}
             </div>
 
-            {/* Transactions */}
             <div className="px-4 pt-2 pb-3">
                 <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Recentes</div>
                 <div className="space-y-0">
@@ -148,7 +158,129 @@ function MockDashboard() {
     );
 }
 
-export default function Welcome({ auth }) {
+// ── Plan card ─────────────────────────────────────────────────────────────────
+function PlanCard({ plan, isPopular }) {
+    const priceDisplay = plan.is_free
+        ? { main: 'Grátis', sub: 'para sempre' }
+        : {
+            main: `${Number(plan.price_monthly).toLocaleString('pt-MZ')} ${plan.currency}`,
+            sub: plan.duration_months > 1 ? `a cada ${plan.duration_months} meses` : 'por mês',
+        };
+
+    const planFeatures = Array.isArray(plan.features) && plan.features.length > 0
+        ? plan.features
+        : Object.keys(featureLabels);
+
+    const registerHref = `${route('register')}?plan=${plan.code}`;
+
+    return (
+        <div className={[
+            'relative flex flex-col rounded-2xl border p-6 transition-all duration-200',
+            isPopular
+                ? 'border-[#00B679] bg-white shadow-xl shadow-[#00B679]/12 ring-1 ring-[#00B679]/20'
+                : 'border-black/8 bg-white hover:border-[#00B679]/30 hover:shadow-md',
+        ].join(' ')}>
+
+            {isPopular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#00B679] text-white text-[11px] font-bold tracking-wide shadow-md shadow-[#00B679]/30">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        Mais popular
+                    </span>
+                </div>
+            )}
+
+            {/* Header */}
+            <div className="mb-5">
+                <h3 className="text-[16px] font-bold text-gray-900 mb-1">{plan.name}</h3>
+                {plan.description && (
+                    <p className="text-[13px] text-gray-500 leading-snug">{plan.description}</p>
+                )}
+            </div>
+
+            {/* Price */}
+            <div className="mb-6 pb-5 border-b border-black/6">
+                <div className="flex items-baseline gap-1.5">
+                    <span className={['font-bold font-mono leading-none', plan.is_free ? 'text-2xl text-gray-900' : 'text-3xl text-gray-900'].join(' ')}>
+                        {priceDisplay.main}
+                    </span>
+                </div>
+                <p className="text-[12px] text-gray-400 mt-1">{priceDisplay.sub}</p>
+            </div>
+
+            {/* Features */}
+            <ul className="flex-1 space-y-2.5 mb-7">
+                {planFeatures.map((key) => (
+                    <li key={key} className="flex items-start gap-2.5">
+                        <span className="w-4 h-4 rounded-full bg-[#00B679]/10 text-[#00B679] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <CheckIcon />
+                        </span>
+                        <span className="text-[13px] text-gray-700 leading-snug">
+                            {featureLabels[key] ?? key}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+
+            {/* CTA */}
+            <Link
+                href={registerHref}
+                className={[
+                    'block text-center rounded-xl py-2.5 px-5 text-[14px] font-semibold transition-all duration-150',
+                    isPopular || !plan.is_free
+                        ? 'bg-[#00B679] text-white hover:bg-[#009D69] shadow-sm shadow-[#00B679]/30'
+                        : 'bg-black/5 text-gray-700 hover:bg-black/8',
+                ].join(' ')}
+            >
+                {plan.is_free ? 'Começar gratuitamente' : `Assinar ${plan.name}`}
+            </Link>
+        </div>
+    );
+}
+
+// ── Fallback static plans (shown when no plans in DB) ─────────────────────────
+const fallbackPlans = [
+    {
+        code: 'gratis',
+        name: 'Gratuito',
+        description: 'Para quem está começando a organizar suas finanças.',
+        price_monthly: 0,
+        currency: 'MT',
+        duration_months: 1,
+        is_free: true,
+        features: ['dashboard', 'incomes', 'expenses'],
+    },
+    {
+        code: 'basico',
+        name: 'Básico',
+        description: 'Para quem quer controle total com metas e poupança.',
+        price_monthly: 199,
+        currency: 'MT',
+        duration_months: 1,
+        is_free: false,
+        features: ['dashboard', 'incomes', 'expenses', 'goals', 'savings_wallet'],
+    },
+    {
+        code: 'anual',
+        name: 'Anual',
+        description: 'Todos os recursos com desconto no plano anual.',
+        price_monthly: 1799,
+        currency: 'MT',
+        duration_months: 12,
+        is_free: false,
+        features: ['dashboard', 'incomes', 'expenses', 'goals', 'savings_wallet'],
+    },
+];
+
+export default function Welcome({ auth, plans }) {
+    const displayPlans = plans && plans.length > 0 ? plans : fallbackPlans;
+
+    // Mark the middle paid plan (or the only paid plan) as popular
+    const paidPlans = displayPlans.filter(p => !p.is_free);
+    const popularCode = paidPlans.length === 1
+        ? paidPlans[0].code
+        : paidPlans[Math.floor(paidPlans.length / 2)]?.code;
+
     return (
         <>
             <Head title="FinTrack — Controle Financeiro Pessoal" />
@@ -165,7 +297,10 @@ export default function Welcome({ auth }) {
                             <span className="text-[15px] font-bold text-gray-900 tracking-tight">FinTrack</span>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <a href="#precos" className="hidden sm:block text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors px-3 py-2">
+                                Preços
+                            </a>
                             {auth.user ? (
                                 <Link href={route('dashboard')} className="btn-primary text-[13px] py-2 px-4">
                                     Painel
@@ -206,15 +341,15 @@ export default function Welcome({ auth }) {
                                 </p>
 
                                 <div className="mt-8 flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
-                                    <Link href={route('register')} className="btn-primary w-full sm:w-auto text-[15px] py-3 px-7">
-                                        Começar gratuitamente
-                                    </Link>
+                                    <a href="#precos" className="btn-primary w-full sm:w-auto text-[15px] py-3 px-7 inline-flex items-center justify-center">
+                                        Ver planos
+                                    </a>
                                     <Link href={route('login')} className="btn-secondary w-full sm:w-auto text-[15px] py-3 px-6">
                                         Já tenho conta
                                     </Link>
                                 </div>
 
-                                <p className="mt-4 text-xs text-gray-400">Sem cartão de crédito. Grátis para sempre.</p>
+                                <p className="mt-4 text-xs text-gray-400">Plano gratuito disponível. Sem cartão de crédito.</p>
                             </div>
 
                             {/* Mock UI */}
@@ -294,9 +429,46 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
+                {/* ── Pricing ─────────────────────────────────────────────── */}
+                <section id="precos" className="py-16 sm:py-24 max-w-6xl mx-auto px-5 sm:px-8">
+                    <div className="text-center mb-12">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00B679]/10 text-[#00916A] text-xs font-semibold tracking-wide mb-4">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" />
+                            </svg>
+                            Planos e preços
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                            Escolha o plano ideal para você
+                        </h2>
+                        <p className="mt-3 text-gray-500 max-w-lg mx-auto">
+                            Comece gratuitamente e evolua conforme suas necessidades. Sem contratos, cancele quando quiser.
+                        </p>
+                    </div>
+
+                    <div className={[
+                        'grid gap-6 items-start',
+                        displayPlans.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' :
+                        displayPlans.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto' :
+                        'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+                    ].join(' ')}>
+                        {displayPlans.map((plan) => (
+                            <PlanCard
+                                key={plan.code}
+                                plan={plan}
+                                isPopular={plan.code === popularCode}
+                            />
+                        ))}
+                    </div>
+
+                    <p className="text-center text-[12px] text-gray-400 mt-8">
+                        Todos os planos incluem acesso via web. Preços em Meticais (MZN).
+                    </p>
+                </section>
+
                 {/* ── CTA ─────────────────────────────────────────────────── */}
-                <section className="py-16 sm:py-24 max-w-6xl mx-auto px-5 sm:px-8 text-center">
-                    <div className="max-w-xl mx-auto">
+                <section className="py-16 sm:py-20 bg-gradient-to-b from-[#F0FDF8] to-white border-t border-black/6">
+                    <div className="max-w-xl mx-auto px-5 sm:px-8 text-center">
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-4">
                             Pronto para tomar o controle?
                         </h2>
@@ -318,6 +490,11 @@ export default function Welcome({ auth }) {
                             </div>
                             <span className="text-sm font-semibold text-gray-700">FinTrack</span>
                         </div>
+                        <nav className="flex items-center gap-5">
+                            <a href="#precos" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Preços</a>
+                            <Link href={route('login')} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Entrar</Link>
+                            <Link href={route('register')} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Criar conta</Link>
+                        </nav>
                         <p className="text-xs text-gray-400">© {new Date().getFullYear()} FinTrack. Controle financeiro pessoal.</p>
                     </div>
                 </footer>

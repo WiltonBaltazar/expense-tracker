@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import MonthSelector from '@/Components/MonthSelector';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
@@ -568,6 +568,9 @@ function ExpenseItem({ expense, isLast }) {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({ allocations, bucketStatus, goals, recentExpenses, monthIncome, weeklyBudget, savingsTransfers, currentMonth }) {
+    const page = usePage();
+    const user = page.props.auth?.user;
+    const features = page.props.auth?.subscription?.features ?? {};
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [showIncomeModal, setShowIncomeModal] = useState(false);
     const [showGoalModal, setShowGoalModal] = useState(false);
@@ -575,6 +578,24 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
     const [fabOpen, setFabOpen] = useState(false);
     const { reduceMotion } = useMotionPreference();
     const staggerProps = getStaggerMotionProps(reduceMotion);
+    const hasFeature = (featureKey) => {
+        if (!featureKey) return true;
+        if (user?.is_super_admin) return true;
+        return features[featureKey] !== false;
+    };
+    const canIncomes = hasFeature('incomes');
+    const canExpenses = hasFeature('expenses');
+    const canGoals = hasFeature('goals');
+    const canSavingsWallet = hasFeature('savings_wallet');
+    const hasFabActions = canGoals || canIncomes || canExpenses;
+
+    const headerQuickAction = canExpenses
+        ? { label: '+ Nova Despesa', onClick: () => setShowExpenseModal(true) }
+        : canIncomes
+            ? { label: '+ Nova Renda', onClick: () => setShowIncomeModal(true) }
+            : canGoals
+                ? { label: '+ Nova Meta', onClick: () => setShowGoalModal(true) }
+                : null;
 
     return (
         <AuthenticatedLayout
@@ -584,18 +605,20 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
                         <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">Painel Financeiro</h2>
                         <MonthSelector currentMonth={currentMonth} routeName="dashboard" className="mt-0.5" />
                     </div>
-                    <button onClick={() => setShowExpenseModal(true)} className="btn-primary text-[13px]">
-                        + Nova Despesa
-                    </button>
+                    {headerQuickAction && (
+                        <button onClick={headerQuickAction.onClick} className="btn-primary text-[13px]">
+                            {headerQuickAction.label}
+                        </button>
+                    )}
                 </div>
             }
         >
             <Head title="Painel" />
 
-            <QuickExpenseModal show={showExpenseModal} onClose={() => setShowExpenseModal(false)} />
-            <QuickIncomeModal show={showIncomeModal} onClose={() => setShowIncomeModal(false)} />
-            <QuickGoalModal show={showGoalModal} onClose={() => setShowGoalModal(false)} />
-            <SavingsTransferModal show={showSavingsModal} onClose={() => setShowSavingsModal(false)} />
+            {canExpenses && <QuickExpenseModal show={showExpenseModal} onClose={() => setShowExpenseModal(false)} />}
+            {canIncomes && <QuickIncomeModal show={showIncomeModal} onClose={() => setShowIncomeModal(false)} />}
+            {canGoals && <QuickGoalModal show={showGoalModal} onClose={() => setShowGoalModal(false)} />}
+            {canSavingsWallet && <SavingsTransferModal show={showSavingsModal} onClose={() => setShowSavingsModal(false)} />}
 
             <motion.div
                 className="max-w-[1100px] mx-auto px-5 sm:px-6 lg:px-8 py-5 pb-10 space-y-4"
@@ -612,13 +635,15 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
                     <BucketPanel bucketStatus={bucketStatus} />
                 </motion.div>
 
-                <motion.div variants={staggerItem}>
-                    <SavingsCard
-                        economia={bucketStatus.economia}
-                        savingsTransfers={savingsTransfers}
-                        onAddSaving={() => setShowSavingsModal(true)}
-                    />
-                </motion.div>
+                {canSavingsWallet && (
+                    <motion.div variants={staggerItem}>
+                        <SavingsCard
+                            economia={bucketStatus.economia}
+                            savingsTransfers={savingsTransfers}
+                            onAddSaving={() => setShowSavingsModal(true)}
+                        />
+                    </motion.div>
+                )}
 
                 <motion.div variants={staggerItem}>
                     <WeeklyCard weeklyBudget={weeklyBudget} />
@@ -626,113 +651,125 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
 
                 <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                    <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={{ duration: reduceMotion ? 0 : 0.2 }} className="bg-white rounded-xl border border-black/7 shadow-sm">
-                        <div className="px-5 py-3.5 border-b border-black/6 flex items-center justify-between">
-                            <span className="text-[13px] font-semibold text-gray-900">Metas</span>
-                            <Link href={route('goals.index')} className="text-[12px] font-semibold text-[#00B679] hover:underline">Ver todas</Link>
-                        </div>
-                        <div className="px-5 py-2">
-                            {goals.length > 0
-                                ? goals.map(g => <GoalItem key={g.id} goal={g} />)
+                    {canGoals && (
+                        <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={{ duration: reduceMotion ? 0 : 0.2 }} className="bg-white rounded-xl border border-black/7 shadow-sm">
+                            <div className="px-5 py-3.5 border-b border-black/6 flex items-center justify-between">
+                                <span className="text-[13px] font-semibold text-gray-900">Metas</span>
+                                <Link href={route('goals.index')} className="text-[12px] font-semibold text-[#00B679] hover:underline">Ver todas</Link>
+                            </div>
+                            <div className="px-5 py-2">
+                                {goals.length > 0
+                                    ? goals.map(g => <GoalItem key={g.id} goal={g} />)
+                                    : (
+                                        <div className="text-center py-8">
+                                            <p className="text-[13px] text-gray-500 mb-3">Nenhuma meta cadastrada</p>
+                                            <Link href={route('goals.index')} className="btn-primary text-[12px] py-1.5 px-4">Criar meta</Link>
+                                        </div>
+                                    )
+                                }
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {canExpenses && (
+                        <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={{ duration: reduceMotion ? 0 : 0.2 }} className="bg-white rounded-xl border border-black/7 shadow-sm">
+                            <div className="px-5 py-3.5 border-b border-black/6 flex items-center justify-between">
+                                <span className="text-[13px] font-semibold text-gray-900">Despesas Recentes</span>
+                                <Link href={route('expenses.index')} className="text-[12px] font-semibold text-[#00B679] hover:underline">Ver todas</Link>
+                            </div>
+                            {recentExpenses.length > 0
+                                ? recentExpenses.map((e, i) => <ExpenseItem key={e.id} expense={e} isLast={i === recentExpenses.length - 1} />)
                                 : (
-                                    <div className="text-center py-8">
-                                        <p className="text-[13px] text-gray-500 mb-3">Nenhuma meta cadastrada</p>
-                                        <Link href={route('goals.index')} className="btn-primary text-[12px] py-1.5 px-4">Criar meta</Link>
+                                    <div className="text-center py-8 px-5">
+                                        <p className="text-[13px] text-gray-500 mb-3">Nenhuma despesa registrada</p>
+                                        <button onClick={() => setShowExpenseModal(true)} className="btn-primary text-[12px] py-1.5 px-4">Registrar despesa</button>
                                     </div>
                                 )
                             }
-                        </div>
-                    </motion.div>
-
-                    <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} transition={{ duration: reduceMotion ? 0 : 0.2 }} className="bg-white rounded-xl border border-black/7 shadow-sm">
-                        <div className="px-5 py-3.5 border-b border-black/6 flex items-center justify-between">
-                            <span className="text-[13px] font-semibold text-gray-900">Despesas Recentes</span>
-                            <Link href={route('expenses.index')} className="text-[12px] font-semibold text-[#00B679] hover:underline">Ver todas</Link>
-                        </div>
-                        {recentExpenses.length > 0
-                            ? recentExpenses.map((e, i) => <ExpenseItem key={e.id} expense={e} isLast={i === recentExpenses.length - 1} />)
-                            : (
-                                <div className="text-center py-8 px-5">
-                                    <p className="text-[13px] text-gray-500 mb-3">Nenhuma despesa registrada</p>
-                                    <button onClick={() => setShowExpenseModal(true)} className="btn-primary text-[12px] py-1.5 px-4">Registrar despesa</button>
-                                </div>
-                            )
-                        }
-                    </motion.div>
+                        </motion.div>
+                    )}
 
                 </motion.div>
             </motion.div>
 
             {/* FAB Speed Dial */}
-            <div className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 z-30 flex flex-col items-end gap-2">
-                <AnimatePresence>
-                    {fabOpen && (
-                        <motion.div
-                            className="flex flex-col items-end gap-2"
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 8 }}
-                            transition={{ duration: reduceMotion ? 0 : 0.2 }}
-                        >
-                            <motion.button
-                            onClick={() => { setShowGoalModal(true); setFabOpen(false); }}
-                            className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
-                            whileHover={reduceMotion ? undefined : { x: -2 }}
-                            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                        >
-                            <span className="text-[12px] font-semibold text-gray-700">Nova Meta</span>
-                            <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22" /></svg>
-                            </span>
-                            </motion.button>
+            {hasFabActions && (
+                <div className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 z-30 flex flex-col items-end gap-2">
+                    <AnimatePresence>
+                        {fabOpen && (
+                            <motion.div
+                                className="flex flex-col items-end gap-2"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 8 }}
+                                transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                            >
+                                {canGoals && (
+                                    <motion.button
+                                        onClick={() => { setShowGoalModal(true); setFabOpen(false); }}
+                                        className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
+                                        whileHover={reduceMotion ? undefined : { x: -2 }}
+                                        whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                                    >
+                                        <span className="text-[12px] font-semibold text-gray-700">Nova Meta</span>
+                                        <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22" /></svg>
+                                        </span>
+                                    </motion.button>
+                                )}
 
-                            <motion.button
-                            onClick={() => { setShowIncomeModal(true); setFabOpen(false); }}
-                            className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
-                            whileHover={reduceMotion ? undefined : { x: -2 }}
-                            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                        >
-                            <span className="text-[12px] font-semibold text-gray-700">Nova Renda</span>
-                            <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0" /></svg>
-                            </span>
-                            </motion.button>
+                                {canIncomes && (
+                                    <motion.button
+                                        onClick={() => { setShowIncomeModal(true); setFabOpen(false); }}
+                                        className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
+                                        whileHover={reduceMotion ? undefined : { x: -2 }}
+                                        whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                                    >
+                                        <span className="text-[12px] font-semibold text-gray-700">Nova Renda</span>
+                                        <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0" /></svg>
+                                        </span>
+                                    </motion.button>
+                                )}
 
-                            <motion.button
-                            onClick={() => { setShowExpenseModal(true); setFabOpen(false); }}
-                            className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
-                            whileHover={reduceMotion ? undefined : { x: -2 }}
-                            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                        >
-                            <span className="text-[12px] font-semibold text-gray-700">Nova Despesa</span>
-                            <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5h18M7.5 15h1.5" /></svg>
-                            </span>
-                            </motion.button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                {canExpenses && (
+                                    <motion.button
+                                        onClick={() => { setShowExpenseModal(true); setFabOpen(false); }}
+                                        className="flex items-center gap-2 bg-white border border-black/10 rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
+                                        whileHover={reduceMotion ? undefined : { x: -2 }}
+                                        whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                                    >
+                                        <span className="text-[12px] font-semibold text-gray-700">Nova Despesa</span>
+                                        <span className="w-7 h-7 rounded-full bg-[#00B679]/10 flex items-center justify-center text-[#00B679]">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5h18M7.5 15h1.5" /></svg>
+                                        </span>
+                                    </motion.button>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                <motion.button
-                    onClick={() => setFabOpen((v) => !v)}
-                    title={fabOpen ? 'Fechar ações rápidas' : 'Ações rápidas'}
-                    className="w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 hover:scale-105 active:scale-95 transition-transform"
-                    whileHover={reduceMotion ? undefined : { scale: 1.05 }}
-                    whileTap={reduceMotion ? undefined : { scale: 0.93 }}
-                >
-                    <svg
-                        width="22"
-                        height="22"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2.5}
-                        stroke="#fff"
-                        className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+                    <motion.button
+                        onClick={() => setFabOpen((v) => !v)}
+                        title={fabOpen ? 'Fechar ações rápidas' : 'Ações rápidas'}
+                        className="w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-full bg-[#00B679] border-none cursor-pointer flex items-center justify-center shadow-lg shadow-[#00B679]/30 hover:scale-105 active:scale-95 transition-transform"
+                        whileHover={reduceMotion ? undefined : { scale: 1.05 }}
+                        whileTap={reduceMotion ? undefined : { scale: 0.93 }}
                     >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                </motion.button>
-            </div>
+                        <svg
+                            width="22"
+                            height="22"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2.5}
+                            stroke="#fff"
+                            className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </motion.button>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }
