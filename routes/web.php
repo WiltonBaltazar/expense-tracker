@@ -105,6 +105,7 @@ Route::middleware(['auth', 'verified', 'super.admin', 'admin.domain'])
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/analytics', [AdminDashboardController::class, 'analytics'])->name('analytics');
         Route::get('/users', [AdminCustomerController::class, 'index'])->name('customers.index');
+        Route::delete('/users/{user}', [AdminCustomerController::class, 'destroy'])->name('customers.destroy');
         Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
         Route::post('/plans', [AdminPlanController::class, 'store'])->name('plans.store');

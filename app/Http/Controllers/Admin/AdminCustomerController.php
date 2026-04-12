@@ -10,6 +10,7 @@ use App\Models\Income;
 use App\Models\SavingsTransfer;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -120,6 +121,7 @@ class AdminCustomerController extends Controller
             ->all();
 
         return Inertia::render('Admin/Users', [
+            'canDelete' => true,
             'adminDomain' => config('admin.domain'),
             'generatedAt' => $now->toIso8601String(),
             'stats' => [
@@ -136,5 +138,16 @@ class AdminCustomerController extends Controller
             'users' => $users,
             'planDistribution' => $planDistribution,
         ]);
+    }
+
+    public function destroy(User $user): RedirectResponse
+    {
+        if ($user->is_super_admin) {
+            abort(403, 'Não é possível remover administradores por esta rota.');
+        }
+
+        $user->delete();
+
+        return redirect()->back()->with('success', "Utilizador {$user->email} removido com sucesso.");
     }
 }
