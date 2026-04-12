@@ -109,8 +109,12 @@ function GoalForm({ onClose, goal = null }) {
                 </div>
 
                 <div className="mt-4 flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                    <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                    <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        Cancelar
+                    </button>
+                    <button type="submit" disabled={processing} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                         {processing ? 'Salvando...' : 'Salvar'}
                     </button>
                 </div>
@@ -182,8 +186,12 @@ function SavingsDepositModal({ show, onClose }) {
                         />
                     </div>
                     <div className="pt-2 flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                             {processing ? 'Salvando...' : 'Depositar'}
                         </button>
                     </div>
@@ -283,8 +291,12 @@ function TransferFromSavingsModal({ goal, walletAvailable, onClose }) {
                     </div>
 
                     <div className="pt-2 flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                        <button type="submit" disabled={processing || maxTransfer <= 0} className="btn-primary text-[13px]">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={processing || maxTransfer <= 0} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
                             {processing ? 'Transferindo...' : 'Transferir para Meta'}
                         </button>
                     </div>
@@ -382,8 +394,12 @@ function TransferToSavingsModal({ goal, onClose }) {
                     </div>
 
                     <div className="pt-2 flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                        <button type="submit" disabled={processing || goalBalance <= 0} className="btn-primary text-[13px]">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={processing || goalBalance <= 0} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
                             {processing ? 'Transferindo...' : 'Devolver para Poupança'}
                         </button>
                     </div>
@@ -481,11 +497,13 @@ export default function Index({ goals, savingsWallet, history }) {
                 <div className="flex items-center justify-between gap-3">
                     <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">Metas</h2>
                     <div className="flex items-center gap-2">
-                        <button onClick={() => setShowSavingsModal(true)} className="btn-secondary text-[13px]">
-                            + Poupança
+                        <button onClick={() => setShowSavingsModal(true)} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                            Poupança
                         </button>
-                        <button onClick={() => { setEditingGoal(null); setShowForm(true); }} className="btn-primary text-[13px]">
-                            + Nova Meta
+                        <button onClick={() => { setEditingGoal(null); setShowForm(true); }} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                            Nova Meta
                         </button>
                     </div>
                 </div>
@@ -526,9 +544,10 @@ export default function Index({ goals, savingsWallet, history }) {
 
                         <button
                             onClick={() => setShowSavingsModal(true)}
-                            className="text-[12px] font-semibold text-[#00B679] bg-[#00B679]/10 border border-[#00B679]/20 rounded-lg px-3 py-2 cursor-pointer hover:bg-[#00B679]/20 transition-colors whitespace-nowrap flex-shrink-0"
+                            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#00B679] bg-[#00B679]/10 border border-[#00B679]/20 rounded-lg px-3 py-2 cursor-pointer hover:bg-[#00B679]/20 transition-colors whitespace-nowrap flex-shrink-0"
                         >
-                            + Depositar
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                            Depositar
                         </button>
                     </div>
                 </motion.div>
@@ -562,26 +581,32 @@ export default function Index({ goals, savingsWallet, history }) {
                                             {goal.deadline && <p className="text-[11px] text-gray-400 ml-4">Prazo: {new Date(goal.deadline).toLocaleDateString('pt-BR')}</p>}
                                         </div>
 
-                                        <div className="flex gap-3 flex-shrink-0">
+                                        <div className="flex flex-wrap justify-end gap-1 flex-shrink-0">
                                             <button
                                                 onClick={() => setFromSavingsGoal(goal)}
                                                 disabled={!canDeposit}
-                                                className={`text-[12px] font-semibold ${canDeposit ? 'text-[#00B679] hover:underline' : 'text-gray-300 cursor-not-allowed'} bg-none border-none`}
+                                                title="Depositar da poupança"
+                                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11.5px] font-semibold transition-colors ${canDeposit ? 'text-[#00B679] hover:bg-[#00B679]/8 cursor-pointer' : 'text-gray-300 cursor-not-allowed'}`}
                                             >
-                                                Depositar
+                                                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                                <span className="hidden sm:inline">Depositar</span>
                                             </button>
                                             <button
                                                 onClick={() => setToSavingsGoal(goal)}
                                                 disabled={!canWithdraw}
-                                                className={`text-[12px] font-semibold ${canWithdraw ? 'text-[#2563EB] hover:underline' : 'text-gray-300 cursor-not-allowed'} bg-none border-none`}
+                                                title="Retirar para poupança"
+                                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11.5px] font-semibold transition-colors ${canWithdraw ? 'text-[#2563EB] hover:bg-[#2563EB]/8 cursor-pointer' : 'text-gray-300 cursor-not-allowed'}`}
                                             >
-                                                Retirar
+                                                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 7.5m0 0L7.5 12m4.5-4.5V21" /></svg>
+                                                <span className="hidden sm:inline">Retirar</span>
                                             </button>
-                                            <button onClick={() => { setEditingGoal(goal); setShowForm(false); }} className="text-[12px] font-semibold text-[#00B679] bg-none border-none cursor-pointer hover:underline">
-                                                Editar
+                                            <button onClick={() => { setEditingGoal(goal); setShowForm(false); }} title="Editar meta" className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11.5px] font-semibold text-[#00B679] hover:bg-[#00B679]/8 transition-colors cursor-pointer">
+                                                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                                                <span className="hidden sm:inline">Editar</span>
                                             </button>
-                                            <button onClick={() => handleDeleteGoal(goal.id)} className="text-[12px] font-semibold text-red-500 bg-none border-none cursor-pointer hover:underline">
-                                                Excluir
+                                            <button onClick={() => handleDeleteGoal(goal.id)} title="Excluir meta" className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11.5px] font-semibold text-red-500 hover:bg-red-50 transition-colors cursor-pointer">
+                                                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                <span className="hidden sm:inline">Excluir</span>
                                             </button>
                                         </div>
                                     </div>

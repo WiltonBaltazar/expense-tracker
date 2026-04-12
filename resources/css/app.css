@@ -98,3 +98,13 @@
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }
 }
+
+/* Prevent iOS Safari auto-zoom on input focus (triggered when font-size < 16px).
+   @supports (-webkit-touch-callout: none) targets iOS exclusively. */
+@supports (-webkit-touch-callout: none) {
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}

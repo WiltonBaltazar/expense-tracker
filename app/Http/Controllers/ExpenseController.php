@@ -49,6 +49,77 @@ class ExpenseController extends Controller
             'desejos' => $allExpenses->where('bucket', 'desejos')->sum('amount'),
         ];
 
+        // ── Budget limits ──────────────────────────────────────────────────────
+        $budgetLimits = $user->budgetLimits()->get();
+
+        // Spending per category this month (all expenses)
+        $categoryTotals = $allExpenses
+            ->groupBy('category')
+            ->map(fn ($items) => (float) $items->sum('amount'))
+            ->toArray();
+
+        // ── Spending Insights ──────────────────────────────────────────────────
+        // Last month expenses for comparison
+        $lastMonthStart = $month->copy()->subMonth()->startOfMonth();
+        $lastMonthEnd   = $month->copy()->subMonth()->endOfMonth();
+
+        $lastOneTime = $user->expenses()
+            ->where('is_recurring', false)
+            ->whereBetween('spent_at', [$lastMonthStart, $lastMonthEnd])
+            ->get();
+
+        $lastRecurring = $user->expenses()
+            ->where('is_recurring', true)
+            ->where('spent_at', '<=', $lastMonthEnd)
+            ->get()
+            ->filter(fn ($expense) => $expense->appliesInMonth($lastMonthStart))
+            ->values();
+
+        $lastAllExpenses = $lastOneTime->concat($lastRecurring);
+
+        $lastCategoryTotals = $lastAllExpenses
+            ->groupBy('category')
+            ->map(fn ($items) => (float) $items->sum('amount'))
+            ->toArray();
+
+        // Top 3 categories this month
+        $topCategories = collect($categoryTotals)
+            ->sortDesc()
+            ->take(3)
+            ->map(fn ($amount, $category) => [
+                'category' => $category,
+                'amount' => $amount,
+                'pct' => $monthTotal > 0 ? round(($amount / $monthTotal) * 100) : 0,
+            ])
+            ->values()
+            ->toArray();
+
+        // Month-over-month changes for categories present in both months
+        $momChanges = [];
+        foreach ($categoryTotals as $category => $current) {
+            $previous = $lastCategoryTotals[$category] ?? null;
+            if ($previous === null || $previous == 0) continue;
+            $change = round((($current - $previous) / $previous) * 100);
+            if (abs($change) >= 10) { // only surface meaningful changes
+                $momChanges[] = [
+                    'category' => $category,
+                    'current' => $current,
+                    'previous' => $previous,
+                    'change_pct' => $change,
+                ];
+            }
+        }
+
+        // Sort by absolute change descending, take top 4
+        usort($momChanges, fn ($a, $b) => abs($b['change_pct']) <=> abs($a['change_pct']));
+        $momChanges = array_slice($momChanges, 0, 4);
+
+        $insights = [
+            'topCategories' => $topCategories,
+            'momChanges' => $momChanges,
+            'lastMonthTotal' => (float) $lastAllExpenses->sum('amount'),
+        ];
+
         return Inertia::render('Expenses/Index', [
             'expenses' => $oneTimeExpenses,
             'recurringExpenses' => $recurringExpenses,
@@ -56,6 +127,9 @@ class ExpenseController extends Controller
             'byBucket' => $byBucket,
             'currentMonth' => $month->format('Y-m'),
             'currentMonthLabel' => $month->translatedFormat('F Y'),
+            'budgetLimits' => $budgetLimits,
+            'categoryTotals' => $categoryTotals,
+            'insights' => $insights,
         ]);
     }
 
@@ -63,6 +137,8 @@ class ExpenseController extends Controller
     {
         $validated = $request->validate([
             'description' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:500',
+            'payment_method' => 'nullable|in:dinheiro,mpesa,emola,mkesh,banco',
             'amount' => 'required|numeric|min:0.01',
             'category' => 'required|string|max:255',
             'bucket' => 'required|in:necessidades,desejos',
@@ -87,6 +163,8 @@ class ExpenseController extends Controller
 
         $validated = $request->validate([
             'description' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:500',
+            'payment_method' => 'nullable|in:dinheiro,mpesa,emola,mkesh,banco',
             'amount' => 'required|numeric|min:0.01',
             'category' => 'required|string|max:255',
             'bucket' => 'required|in:necessidades,desejos',

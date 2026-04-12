@@ -13,6 +13,8 @@ class Expense extends Model
     protected $fillable = [
         'user_id',
         'description',
+        'notes',
+        'payment_method',
         'amount',
         'category',
         'bucket',

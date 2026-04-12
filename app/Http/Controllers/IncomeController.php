@@ -47,6 +47,8 @@ class IncomeController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'frequency' => 'required|in:semanal,quinzenal,mensal,bimestral,trimestral,semestral,anual,unico',
             'description' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:500',
+            'payment_method' => 'nullable|in:dinheiro,mpesa,emola,mkesh,banco',
             'received_at' => 'required|date',
         ]);
 
@@ -64,6 +66,8 @@ class IncomeController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'frequency' => 'required|in:semanal,quinzenal,mensal,bimestral,trimestral,semestral,anual,unico',
             'description' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:500',
+            'payment_method' => 'nullable|in:dinheiro,mpesa,emola,mkesh,banco',
             'received_at' => 'required|date',
         ]);
 

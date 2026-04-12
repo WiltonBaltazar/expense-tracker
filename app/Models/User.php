@@ -97,6 +97,11 @@ class User extends Authenticatable
         return $this->hasMany(GoalTransfer::class);
     }
 
+    public function budgetLimits(): HasMany
+    {
+        return $this->hasMany(BudgetLimit::class);
+    }
+
     public function subscription(): HasOne
     {
         return $this->hasOne(UserSubscription::class);

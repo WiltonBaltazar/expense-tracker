@@ -16,6 +16,8 @@ class Income extends Model
         'amount',
         'frequency',
         'description',
+        'notes',
+        'payment_method',
         'received_at',
     ];
 

@@ -169,7 +169,8 @@ export default function Edit({ setting, subscription, subscriptionHistory = [] }
                             {errors.needs_pct && <p className="mt-2 text-[12px] text-red-500">{errors.needs_pct}</p>}
 
                             <div className="mt-6 flex justify-end">
-                                <button type="submit" disabled={processing || !isValid} className="btn-primary text-[14px] px-7">
+                                <button type="submit" disabled={processing || !isValid} className="btn-primary text-[14px] px-7 inline-flex items-center gap-2">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                                     {processing ? 'Salvando...' : 'Salvar Configurações'}
                                 </button>
                             </div>
@@ -259,26 +260,18 @@ export default function Edit({ setting, subscription, subscriptionHistory = [] }
                                 </div>
                             </div>
 
-                            <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                {!canRenew && daysUntilExpiry !== null && (
-                                    <p className="text-[12px] text-gray-500">
-                                        Renovação disponível nos últimos 5 dias do plano.
-                                    </p>
-                                )}
-                                <div className="sm:ml-auto">
+                            {canRenew && (
+                                <div className="mt-5 flex justify-end">
                                     <button
                                         type="button"
-                                        disabled={renewing || !canRenew}
-                                        title={!canRenew && daysUntilExpiry !== null
-                                            ? `Disponível em ${daysUntilExpiry - 5} dias`
-                                            : undefined}
+                                        disabled={renewing}
                                         onClick={() => renewSubscription(route('settings.subscription.renew'), { preserveScroll: true })}
                                         className="inline-flex items-center rounded-lg bg-[#00B679] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-[#009a66] disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {renewing ? 'Renovando...' : 'Renovar Subscrição'}
                                     </button>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         <div className="bg-white rounded-xl border border-black/7 shadow-sm p-6 sm:p-7">

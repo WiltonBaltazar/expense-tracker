@@ -98,8 +98,12 @@ function QuickExpenseModal({ show, onClose }) {
                         </div>
                     </div>
                     <div className="mt-5 flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                             {processing ? 'Salvando...' : 'Salvar Despesa'}
                         </button>
                     </div>
@@ -168,8 +172,12 @@ function QuickIncomeModal({ show, onClose }) {
                         </div>
                     </div>
                     <div className="mt-5 flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                             {processing ? 'Salvando...' : 'Salvar Renda'}
                         </button>
                     </div>
@@ -228,8 +236,12 @@ function QuickGoalModal({ show, onClose }) {
                         </div>
                     </div>
                     <div className="mt-5 flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                             {processing ? 'Salvando...' : 'Salvar Meta'}
                         </button>
                     </div>
@@ -274,8 +286,12 @@ function SavingsTransferModal({ show, onClose }) {
                         <input type="text" placeholder="Ex: Bónus de fim de ano..." value={data.note} onChange={e => setData('note', e.target.value)} className={inputCls} />
                     </div>
                     <div className="pt-2 flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                        <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                        <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" disabled={processing} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
                             {processing ? 'Registrando...' : 'Registrar Transferência'}
                         </button>
                     </div>
@@ -606,8 +622,9 @@ export default function Dashboard({ allocations, bucketStatus, goals, recentExpe
                         <MonthSelector currentMonth={currentMonth} routeName="dashboard" className="mt-0.5" />
                     </div>
                     {headerQuickAction && (
-                        <button onClick={headerQuickAction.onClick} className="btn-primary text-[13px]">
-                            {headerQuickAction.label}
+                        <button onClick={headerQuickAction.onClick} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                            {headerQuickAction.label.replace('+ ', '')}
                         </button>
                     )}
                 </div>

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminPlanController;
 use App\Http\Controllers\Admin\AdminSubscriptionController;
+use App\Http\Controllers\BudgetLimitController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SavingsTransferController;
 use App\Http\Controllers\SettingController;
@@ -63,6 +64,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/despesas', [ExpenseController::class, 'store'])->name('expenses.store');
         Route::put('/despesas/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
         Route::delete('/despesas/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
+        // Budget limits
+        Route::post('/orcamentos', [BudgetLimitController::class, 'store'])->name('budgets.store');
+        Route::put('/orcamentos/{budgetLimit}', [BudgetLimitController::class, 'update'])->name('budgets.update');
+        Route::delete('/orcamentos/{budgetLimit}', [BudgetLimitController::class, 'destroy'])->name('budgets.destroy');
     });
 
     // Goals

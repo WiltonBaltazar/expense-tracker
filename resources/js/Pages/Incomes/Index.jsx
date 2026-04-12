@@ -14,6 +14,22 @@ const SOURCE_LABELS = { salario:'Salário', freelance:'Freelance', renda_passiva
 const SOURCE_COLORS = { salario:'#00B679', freelance:'#D97706', renda_passiva:'#2563EB', outro:'#6B7280' };
 const FREQ_LABELS   = { semanal:'Semanal', quinzenal:'Quinzenal', mensal:'Mensal', bimestral:'Bimestral', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual', unico:'Único' };
 
+const PAYMENT_LABELS = {
+    dinheiro: 'Dinheiro',
+    mpesa: 'M-Pesa',
+    emola: 'e-Mola',
+    mkesh: 'mKesh',
+    banco: 'Banco',
+};
+
+const PAYMENT_COLORS = {
+    dinheiro: '#6B7280',
+    mpesa: '#E4093E',
+    emola: '#F97316',
+    mkesh: '#3B82F6',
+    banco: '#8B5CF6',
+};
+
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-gray-50 border border-black/10 text-gray-900 text-[13px] outline-none focus:border-[#00B679]/50 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors';
 
 // ── Form ──────────────────────────────────────────────────────────────────────
@@ -24,6 +40,8 @@ function IncomeForm({ onClose, income = null, currentMonth }) {
         amount: income?.amount || '',
         frequency: income?.frequency || 'mensal',
         description: income?.description || '',
+        notes: income?.notes || '',
+        payment_method: income?.payment_method || '',
         received_at: defaultDate,
     });
 
@@ -69,14 +87,30 @@ function IncomeForm({ onClose, income = null, currentMonth }) {
                         <input type="date" value={data.received_at} onChange={e => setData('received_at', e.target.value)} className={inputCls} />
                         {errors.received_at && <p className="text-[11px] text-red-500 mt-1">{errors.received_at}</p>}
                     </div>
-                    <div className="sm:col-span-2">
+                    <div>
                         <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Descrição</label>
                         <input type="text" value={data.description} onChange={e => setData('description', e.target.value)} className={inputCls} placeholder="Opcional" />
                     </div>
+                    <div>
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Forma de Recebimento</label>
+                        <select value={data.payment_method} onChange={e => setData('payment_method', e.target.value)} className={inputCls}>
+                            <option value="">— Opcional —</option>
+                            {Object.entries(PAYMENT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                    </div>
+                    <div className="sm:col-span-2">
+                        <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Notas</label>
+                        <textarea value={data.notes} onChange={e => setData('notes', e.target.value)} className={inputCls + ' resize-none'} rows={2} placeholder="Observações opcionais..." />
+                        {errors.notes && <p className="text-[11px] text-red-500 mt-1">{errors.notes}</p>}
+                    </div>
                 </div>
                 <div className="mt-4 flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="btn-secondary text-[13px]">Cancelar</button>
-                    <button type="submit" disabled={processing} className="btn-primary text-[13px]">
+                    <button type="button" onClick={onClose} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        Cancelar
+                    </button>
+                    <button type="submit" disabled={processing} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                         {processing ? 'Salvando...' : 'Salvar'}
                     </button>
                 </div>
@@ -85,12 +119,13 @@ function IncomeForm({ onClose, income = null, currentMonth }) {
     );
 }
 
-// ── Income row (transaction style) ───────────────────────────────────────────
+// ── Income row ────────────────────────────────────────────────────────────────
 function IncomeRow({ income, onEdit, onDelete }) {
     const [hovered, setHovered] = useState(false);
     const { reduceMotion } = useMotionPreference();
-    const color  = SOURCE_COLORS[income.source] || '#6B7280';
+    const color   = SOURCE_COLORS[income.source] || '#6B7280';
     const initial = (SOURCE_LABELS[income.source] || income.source).charAt(0).toUpperCase();
+    const pmColor = income.payment_method ? PAYMENT_COLORS[income.payment_method] : null;
 
     return (
         <motion.div
@@ -109,12 +144,21 @@ function IncomeRow({ income, onEdit, onDelete }) {
             {/* Info */}
             <div className="flex-1 min-w-0">
                 <p className="text-[13.5px] font-medium text-gray-800 truncate">{income.description || SOURCE_LABELS[income.source] || income.source}</p>
+                {income.notes && (
+                    <p className="text-[11px] text-gray-400 truncate mt-0.5 italic">{income.notes}</p>
+                )}
                 <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded-full"
                         style={{ background: color + '12', color }}>
                         {SOURCE_LABELS[income.source] || income.source}
                     </span>
                     <span className="text-[11px] text-gray-400">{FREQ_LABELS[income.frequency]}</span>
+                    {income.payment_method && (
+                        <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded-full"
+                            style={{ background: pmColor + '18', color: pmColor }}>
+                            {PAYMENT_LABELS[income.payment_method]}
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -139,12 +183,51 @@ function IncomeRow({ income, onEdit, onDelete }) {
             </div>
 
             {/* Mobile */}
-            <div className="flex sm:hidden gap-2 flex-shrink-0 text-[11px] font-semibold">
-                <button onClick={() => onEdit(income)} className="text-[#00B679]">Editar</button>
-                <span className="text-gray-300">·</span>
-                <button onClick={() => onDelete(income.id)} className="text-red-500">Excluir</button>
+            <div className="flex sm:hidden gap-0.5 flex-shrink-0">
+                <button onClick={() => onEdit(income)} title="Editar"
+                    className="p-2.5 rounded-lg text-[#00B679] hover:bg-[#00B679]/8 transition-colors active:scale-95">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                </button>
+                <button onClick={() => onDelete(income.id)} title="Excluir"
+                    className="p-2.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors active:scale-95">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                </button>
             </div>
         </motion.div>
+    );
+}
+
+// ── Search / Filter bar ───────────────────────────────────────────────────────
+function FilterBar({ search, onSearch, source, onSource, payment, onPayment, onClear, hasFilters }) {
+    const selectCls = 'px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-[12px] text-gray-700 outline-none focus:border-[#00B679]/50 cursor-pointer';
+    return (
+        <div className="bg-white rounded-xl border border-black/7 shadow-sm px-4 py-3 mb-4 flex flex-wrap gap-2 items-center">
+            <div className="relative flex-1 min-w-[160px]">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-300" width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <input
+                    type="text"
+                    value={search}
+                    onChange={e => onSearch(e.target.value)}
+                    placeholder="Pesquisar rendas..."
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-black/10 bg-gray-50 text-[13px] text-gray-900 outline-none focus:border-[#00B679]/50 focus:ring-2 focus:ring-[#00B679]/10 focus:bg-white transition-colors"
+                />
+            </div>
+            <select value={source} onChange={e => onSource(e.target.value)} className={selectCls}>
+                <option value="">Todas as fontes</option>
+                {Object.entries(SOURCE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+            <select value={payment} onChange={e => onPayment(e.target.value)} className={selectCls}>
+                <option value="">Todos os recebimentos</option>
+                {Object.entries(PAYMENT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+            {hasFilters && (
+                <button onClick={onClear} className="text-[12px] text-gray-400 hover:text-gray-700 transition-colors px-2 py-1.5 rounded-lg hover:bg-gray-100">
+                    Limpar
+                </button>
+            )}
+        </div>
     );
 }
 
@@ -156,11 +239,27 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
     const { reduceMotion } = useMotionPreference();
     const staggerProps = getStaggerMotionProps(reduceMotion);
 
+    // Filter state
+    const [search, setSearch] = useState('');
+    const [filterSource, setFilterSource] = useState('');
+    const [filterPayment, setFilterPayment] = useState('');
+
     function handleDelete(id) {
         if (confirm('Remover esta renda?')) destroy(route('incomes.destroy', id));
     }
     function handleEdit(income) { setEditingIncome(income); setShowForm(false); }
     function openNew() { setEditingIncome(null); setShowForm(true); }
+    function clearFilters() { setSearch(''); setFilterSource(''); setFilterPayment(''); }
+
+    const hasFilters = search || filterSource || filterPayment;
+
+    const visibleIncomes = incomes.filter(i => {
+        const q = search.toLowerCase();
+        if (q && !i.description?.toLowerCase().includes(q) && !i.notes?.toLowerCase().includes(q) && !(SOURCE_LABELS[i.source] || i.source).toLowerCase().includes(q)) return false;
+        if (filterSource && i.source !== filterSource) return false;
+        if (filterPayment && i.payment_method !== filterPayment) return false;
+        return true;
+    });
 
     return (
         <AuthenticatedLayout
@@ -170,7 +269,10 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
                         <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">Rendas</h2>
                         <MonthSelector currentMonth={currentMonth} routeName="incomes.index" className="mt-0.5" />
                     </div>
-                    <button onClick={openNew} className="btn-primary text-[13px]">+ Nova Renda</button>
+                    <button onClick={openNew} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                        Nova Renda
+                    </button>
                 </div>
             }
         >
@@ -206,10 +308,22 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
                     <IncomeForm income={editingIncome} currentMonth={currentMonth} onClose={() => { setShowForm(false); setEditingIncome(null); }} />
                 </Modal>
 
+                {/* Filter bar */}
+                {incomes.length > 0 && (
+                    <motion.div variants={staggerItem}>
+                        <FilterBar
+                            search={search} onSearch={setSearch}
+                            source={filterSource} onSource={setFilterSource}
+                            payment={filterPayment} onPayment={setFilterPayment}
+                            onClear={clearFilters}
+                            hasFilters={!!hasFilters}
+                        />
+                    </motion.div>
+                )}
+
                 {/* List */}
-                {incomes.length > 0 ? (
+                {visibleIncomes.length > 0 ? (
                     <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm overflow-hidden">
-                        {/* Desktop header */}
                         <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 border-b border-black/5">
                             <div className="w-9 flex-shrink-0" />
                             <div className="flex-1 text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">Descrição / Fonte</div>
@@ -217,11 +331,11 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
                             <div className="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider min-w-[90px] text-right">Valor</div>
                             <div className="w-14 flex-shrink-0" />
                         </div>
-                        {incomes.map(income => (
+                        {visibleIncomes.map(income => (
                             <IncomeRow key={income.id} income={income} onEdit={handleEdit} onDelete={handleDelete} />
                         ))}
                     </motion.div>
-                ) : (
+                ) : incomes.length === 0 ? (
                     <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-14 text-center">
                         <div className="w-12 h-12 rounded-xl bg-[#00B679]/8 flex items-center justify-center mx-auto mb-4">
                             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#00B679">
@@ -232,6 +346,11 @@ export default function Index({ incomes, monthTotal, currentMonth }) {
                         <p className="text-[12.5px] text-gray-400 mb-5">Adicione suas rendas para acompanhar o histórico</p>
                         <button onClick={openNew} className="btn-primary text-[13px]">Adicionar renda</button>
                     </motion.div>
+                ) : (
+                    <div className="bg-white rounded-xl border border-black/7 shadow-sm px-6 py-10 text-center">
+                        <p className="text-[13.5px] font-medium text-gray-500 mb-1">Nenhuma renda encontrada</p>
+                        <p className="text-[12px] text-gray-400">Tente ajustar os filtros</p>
+                    </div>
                 )}
             </motion.div>
 
