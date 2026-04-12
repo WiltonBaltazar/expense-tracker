@@ -25,12 +25,19 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $user = User::create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => bcrypt('password'),
-            'email_verified_at' => now(),
-        ]);
+        $user = User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Skip sample data if the user already existed
+        if (!$user->wasRecentlyCreated) {
+            return;
+        }
 
         // Settings: 50/30/20
         UserSetting::create([
