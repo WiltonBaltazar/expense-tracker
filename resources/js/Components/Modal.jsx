@@ -33,7 +33,7 @@ export default function Modal({
             <Dialog
                 as="div"
                 id="modal"
-                className="fixed inset-0 z-50 flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
+                className="fixed inset-0 z-50 overflow-y-auto"
                 onClose={close}
             >
                 <TransitionChild
@@ -44,24 +44,26 @@ export default function Modal({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
+                    <div className="fixed inset-0" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
                 </TransitionChild>
 
-                <TransitionChild
-                    enter={reduceMotion ? 'duration-0' : 'ease-out duration-300'}
-                    enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    enterTo="opacity-100 translate-y-0 sm:scale-100"
-                    leave={reduceMotion ? 'duration-0' : 'ease-in duration-200'}
-                    leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                    leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                    <DialogPanel
-                        className={`mb-6 mx-auto w-full transform overflow-hidden rounded-2xl transition-all ${maxWidthClass}`}
-                        style={{ background: 'transparent' }}
+                <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
+                    <TransitionChild
+                        enter={reduceMotion ? 'duration-0' : 'ease-out duration-300'}
+                        enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        enterTo="opacity-100 translate-y-0 sm:scale-100"
+                        leave={reduceMotion ? 'duration-0' : 'ease-in duration-200'}
+                        leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                        leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                     >
-                        {children}
-                    </DialogPanel>
-                </TransitionChild>
+                        <DialogPanel
+                            className={`w-full transform overflow-hidden rounded-2xl transition-all ${maxWidthClass}`}
+                            style={{ background: 'transparent' }}
+                        >
+                            {children}
+                        </DialogPanel>
+                    </TransitionChild>
+                </div>
             </Dialog>
         </Transition>
     );

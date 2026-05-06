@@ -286,11 +286,11 @@ function ExpenseSection({ title, items, onEdit, onDelete }) {
 
 // ── Search / Filter bar ───────────────────────────────────────────────────────
 function FilterBar({ search, onSearch, category, onCategory, bucket, onBucket, payment, onPayment, onClear, hasFilters }) {
-    const selectCls = 'px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-[12px] text-gray-700 outline-none focus:border-[#00B679]/50 cursor-pointer';
+    const selectCls = 'flex-1 min-w-[120px] sm:flex-none px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-[12px] text-gray-700 outline-none focus:border-[#00B679]/50 cursor-pointer';
     return (
         <div className="bg-white rounded-xl border border-black/7 shadow-sm px-4 py-3 mb-4 flex flex-wrap gap-2 items-center">
             {/* Search input */}
-            <div className="relative flex-1 min-w-[160px]">
+            <div className="relative w-full sm:flex-1 sm:min-w-[160px] sm:w-auto">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-300" width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
@@ -304,20 +304,20 @@ function FilterBar({ search, onSearch, category, onCategory, bucket, onBucket, p
             </div>
             {/* Filters */}
             <select value={category} onChange={e => onCategory(e.target.value)} className={selectCls}>
-                <option value="">Todas as categorias</option>
+                <option value="">Categoria</option>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <select value={bucket} onChange={e => onBucket(e.target.value)} className={selectCls}>
-                <option value="">Todos os buckets</option>
+                <option value="">Bucket</option>
                 <option value="necessidades">Necessidades</option>
                 <option value="desejos">Desejos</option>
             </select>
             <select value={payment} onChange={e => onPayment(e.target.value)} className={selectCls}>
-                <option value="">Todos os pagamentos</option>
+                <option value="">Pagamento</option>
                 {Object.entries(PAYMENT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
             {hasFilters && (
-                <button onClick={onClear} className="text-[12px] text-gray-400 hover:text-gray-700 transition-colors px-2 py-1.5 rounded-lg hover:bg-gray-100">
+                <button onClick={onClear} className="text-[12px] text-gray-400 hover:text-gray-700 transition-colors px-2 py-1.5 rounded-lg hover:bg-gray-100 whitespace-nowrap">
                     Limpar
                 </button>
             )}
@@ -475,12 +475,12 @@ function BudgetLimitsCard({ budgetLimits, categoryTotals }) {
                                                         <span className="font-mono text-[12px] font-semibold text-gray-700">{fmtN(b.spent)}</span>
                                                         <span className="text-[11px] text-gray-400"> / {fmtN(b.monthly_limit)} MT</span>
                                                     </div>
-                                                    <div className="hidden group-hover:flex gap-1">
-                                                        <button onClick={() => openEdit(b)} title="Editar" className="p-1 rounded text-gray-300 hover:text-[#00B679] transition-colors">
-                                                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                                                    <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                        <button onClick={() => openEdit(b)} title="Editar" className="p-1.5 sm:p-1 rounded text-gray-400 hover:text-[#00B679] transition-colors">
+                                                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
                                                         </button>
-                                                        <button onClick={() => handleDelete(b.id)} title="Remover" className="p-1 rounded text-gray-300 hover:text-red-500 transition-colors">
-                                                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                        <button onClick={() => handleDelete(b.id)} title="Remover" className="p-1.5 sm:p-1 rounded text-gray-400 hover:text-red-500 transition-colors">
+                                                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -713,9 +713,9 @@ export default function Index({ expenses, recurringExpenses, monthTotal, byBucke
                     ))}
                 </motion.div>
 
-                {/* Donut breakdown */}
+                {/* Donut breakdown — hidden on mobile */}
                 {pieData.length > 0 && (
-                    <motion.div variants={staggerItem} className="bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-4">
+                    <motion.div variants={staggerItem} className="hidden sm:block bg-white rounded-xl border border-black/7 shadow-sm p-5 mb-4">
                         <p className="text-[13px] font-semibold text-gray-900 mb-4">Distribuição por Categoria</p>
                         <div className="flex flex-col sm:flex-row items-center gap-6">
                             <ResponsiveContainer width={160} height={160}>

@@ -366,7 +366,7 @@ function SummaryHeader({ allocations, bucketStatus, monthIncome }) {
                     </div>
 
                     {pieData.length > 0 && (
-                        <div className="flex flex-col items-center gap-3 sm:w-[180px]">
+                        <div className="hidden sm:flex flex-col items-center gap-3 sm:w-[180px]">
                             <ResponsiveContainer width={150} height={150}>
                                 <PieChart>
                                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={42} outerRadius={62} paddingAngle={2} dataKey="value" stroke="none">

@@ -499,7 +499,7 @@ export default function Index({ goals, savingsWallet, history }) {
                     <div className="flex items-center gap-2">
                         <button onClick={() => setShowSavingsModal(true)} className="btn-secondary text-[13px] inline-flex items-center gap-1.5">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                            Poupança
+                            <span className="hidden sm:inline">Poupança</span>
                         </button>
                         <button onClick={() => { setEditingGoal(null); setShowForm(true); }} className="btn-primary text-[13px] inline-flex items-center gap-1.5">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -628,6 +628,7 @@ export default function Index({ goals, savingsWallet, history }) {
                                             </span>
                                         )}
                                     </div>
+
                                 </motion.div>
                             );
                         })}

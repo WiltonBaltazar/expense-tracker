@@ -175,11 +175,11 @@ export default function AuthenticatedLayout({ header, children }) {
                             <span style={{ fontSize: '12px', fontWeight: 700, color: '#00B679' }}>{initial}</span>
                         </Link>
                         <Link href={route('logout')} method="post" as="button"
-                            style={{ display: 'flex', alignItems: 'center', gap: '5px', height: '44px', padding: '0 10px', borderRadius: '8px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', cursor: 'pointer', color: '#ef4444', textDecoration: 'none' }}>
+                            title="Sair"
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', cursor: 'pointer', color: '#ef4444', textDecoration: 'none', flexShrink: 0 }}>
                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                             </svg>
-                            <span style={{ fontSize: '13px', fontWeight: 600 }}>Sair</span>
                         </Link>
                     </div>
                 </div>
